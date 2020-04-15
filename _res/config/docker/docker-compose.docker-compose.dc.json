@@ -1,0 +1,6 @@
+{
+    "type": "docker-compose",
+    "app-owner": "wilfongjt",
+    "web-name": "web",
+    "admin-name": "admin"
+}

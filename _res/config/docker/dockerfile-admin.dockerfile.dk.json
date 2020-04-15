@@ -1,0 +1,5 @@
+{
+    "type": "dockerfile",
+    "app-owner": "wilfongjt",
+    "app-name": "admin"
+}

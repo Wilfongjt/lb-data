@@ -1,0 +1,50 @@
+{
+    "type": "table",
+    "tbl-name": "register",
+    "tbl-prefix": "reg",
+    "tbl-role": "guest",
+    "api-overwrite": "0",
+    "api-name": "register",
+    "api-table": "register",
+    "api-methods": ["insert", "select"],
+
+    "fields": [{
+            "name": "id",
+            "context": "pk",
+            "type": "INTEGER",
+            "crud": "r"
+        }, {
+            "name": "app_name",
+            "context": "name",
+            "type": "TEXT",
+            "crud": "cr"
+        }, {
+            "name": "version",
+            "context": "version",
+            "type": "TEXT",
+            "crud": "cr",
+            "default": "1.0.0"
+        },{
+            "name": "token",
+            "context": "token",
+            "type": "TEXT",
+            "crud": "r"
+        }, {
+            "name": "created",
+            "context": "created",
+            "type": "timestamp",
+            "crud": "r"
+        }, {
+            "name": "updated",
+            "context": "updated",
+            "type": "timestamp",
+            "crud": "r"
+        }, {
+            "name": "active",
+            "context": "active",
+            "type": "BOOLEAN",
+            "default": "true",
+            "crud": "r"
+        }]
+
+}

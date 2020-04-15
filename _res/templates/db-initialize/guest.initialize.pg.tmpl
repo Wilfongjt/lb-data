@@ -1,0 +1,12 @@
+\c [[db-prefix]]_db
+
+INSERT INTO [[db-prefix]]_schema.credentials(
+    crd_email,
+    crd_password,
+    crd_user
+) VALUES (
+    'guest@[[LB_APP_PREFIX]].com',
+    current_setting('app.lb_web_guest_password'),
+    '{"username":"guest@[[LB_APP_PREFIX]].com", "roles": ["guest"]}'::jsonb
+);
+

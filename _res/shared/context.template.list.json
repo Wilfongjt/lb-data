@@ -1,0 +1,33 @@
+{
+    "active": "[[tbl-prefix]]_active BOOLEAN NOT NULL DEFAULT true",
+
+    "created": "[[tbl-prefix]]_created timestamp without time zone DEFAULT CURRENT_TIMESTAMP",
+
+    "email": "[[tbl-prefix]]_[[name]] varchar(256) check ( [[tbl-prefix]]_email ~* '^.+@.+\\..+$' )",
+
+    "fk": "[[tbl-prefix]]_[[name]] integer NOT NULL",
+
+    "pk": "[[tbl-prefix]]_[[name]] SERIAL PRIMARY KEY",
+
+    "idx-pk":"CREATE UNIQUE INDEX IF NOT EXISTS [[{tbl-name}]]_[[tbl-prefix]]_id_pkey ON [[tbl-prefix]]_schema.[[{tbl-name}]]([[tbl-prefix]]_id int4_ops);",
+
+    "latitude": "[[tbl-prefix]]_[[name]] numeric(16,14) NOT NULL",
+    "longitude": "[[tbl-prefix]]_[[name]] numeric(17,14) NOT NULL",
+
+    "name": "[[tbl-prefix]]_[[name]] varchar(256) not null check (length([[tbl-prefix]]_[[name]]) < 256)",
+
+    "password": "[[tbl-prefix]]_[[name]] varchar(512) not null check (length([[tbl-prefix]]_password) < 512)",
+    "pgcrypto": "create extension IF NOT EXISTS pgcrypto;",
+    "pgtap": "CREATE EXTENSION IF NOT EXISTS pgtap;",
+    "pgjwt": "CREATE EXTENSION IF NOT EXISTS pgjwt;",
+    "retention": "[[tbl-prefix]]_retention jsonb not null",
+
+    "dep-role-editor": "[[tbl-prefix]]_role varchar(25) DEFAULT 'editor'",
+    "dep-role": "[[tbl-prefix]]_[[name]] varchar(256) not null check (length([[tbl-prefix]]_role) <= 256)",
+    "dep-roles": "[[tbl-prefix]]_roles jsonb not null",
+    "user": "[[tbl-prefix]]_user jsonb not null",
+
+    "token": "[[tbl-prefix]]_token varchar(1000) check (length([[tbl-prefix]]_token) <= 1000)",
+    "updated": "[[tbl-prefix]]_updated timestamp without time zone DEFAULT CURRENT_TIMESTAMP",
+    "version": "[[tbl-prefix]]_version varchar(25) not null check (length([[tbl-prefix]]_version) < 25) DEFAULT '1.0.0'"
+}
