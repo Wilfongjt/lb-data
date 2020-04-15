@@ -1,0 +1,7 @@
+{
+    "db-prefix": "ex",
+    "db-type": "postgres",
+    "db-type-abbr": "pg",
+    "type": "database",
+    "extensions": ["pgcrypto", "pgtap", "pgjwt"]
+}

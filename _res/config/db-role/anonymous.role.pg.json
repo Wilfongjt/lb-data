@@ -1,0 +1,9 @@
+{
+    "type": "role",
+    "role-name": "anonymous",
+    "templates": {
+        "role": "CREATE ROLE ;",
+        "usage": "GRANT USAGE ON SCHEMA {}_schema TO {};",
+        "": ""
+    }
+}

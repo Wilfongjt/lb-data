@@ -1,0 +1,39 @@
+#!/bin/bash
+
+source ./_conf.sh
+
+# check for database folder and make if not there
+echo "LB_GIT_PROJECT is ${LB_GIT_PROJECT} "
+echo "LB_APP_NAME is ${LB_APP_NAME}"
+cd ${LB_GIT_PROJECT}
+ls
+if [ ! -d "[[nuxtjs-name]]/node_modules" ] ; then
+  echo 'new nuxtjs'
+  npx create-nuxt-app [[nuxtjs-name]]
+fi
+
+#npm WARN deprecated core-js@2.6.11: core-js@<3 is no longer maintained and not r
+#ecommended for usage due to the number of issues. Please, upgrade your dependenc
+#ies to the actual version of core-js@3.
+if [ -d "[[nuxtjs-name]]" ] ; then
+    cd "[[nuxtjs-name]]"
+    #npm install --save core-js@3.x
+    #npm install --save-dev jest@latest
+    cd ..
+fi
+#npm WARN deprecated request@2.88.2: request has been deprecated, see
+#https://github.com/request/request/issues/3142
+
+#npm notice created a lockfile as package-lock.json. You should commit this file.
+#npm WARN ts-jest@23.10.5 requires a peer of jest@>=22 <24 but none is installed.
+# You must install peer dependencies yourself.
+
+#npm install --save-dev jest@>=22 <24
+#npm install --save-dev jest@latest
+
+#npm install --dev jest@>=22 <24
+#npm install --save-dev ts-jest@23.10.5
+#npm install --save-dev ts-jest@latest
+#cd "[[nuxtjs-name]]"
+#npm audit
+#npm audit fix --dry-run

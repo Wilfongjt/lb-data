@@ -1,0 +1,40 @@
+---- SET DB
+\c [[db-prefix]]_db
+-- TABLE
+create table if not exists
+[[db-prefix]]_schema.[[tbl-name]] (
+  [[fields]]
+);
+
+-- INDEX
+CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[db-prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id int4_ops);
+
+-- TRIGGER FUNCTION
+CREATE OR REPLACE FUNCTION [[tbl-prefix]]_ins_upd_trigger_func() RETURNS trigger
+AS $$
+BEGIN
+   -- create application token
+    IF (TG_OP = 'INSERT') THEN
+        NEW.[[tbl-prefix]]_token = sign(format('{"app_name":"%s",
+          "version":"%s",
+          "role":"registrar"}',
+          NEW.[[tbl-prefix]]_app_name,
+          NEW.[[tbl-prefix]]_version)::json,
+          current_setting('app.jwt_secret'), 'HS256'::text);
+    ELSEIF (TG_OP = 'UPDATE') THEN
+
+       NEW.[[tbl-prefix]]_updated := CURRENT_TIMESTAMP;
+
+    END IF;
+
+    RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+
+
+-- TRIGGER
+CREATE TRIGGER [[tbl-prefix]]_ins_upd_trigger
+ BEFORE INSERT ON [[db-prefix]]_schema.[[tbl-name]]
+ FOR EACH ROW
+ EXECUTE PROCEDURE [[tbl-prefix]]_ins_upd_trigger_func();
+

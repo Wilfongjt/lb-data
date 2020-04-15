@@ -1,0 +1,104 @@
+version: '3'
+# docker-compose up
+# ref: http://postgrest.org/en/v6.0/install.html#docker
+# ref: https://github.com/mattddowney/compose-postgrest/blob/master/docker-compose.yml
+
+services:
+  admin:
+    container_name: [[admin-name]]
+    image: [[app-owner]]/[[admin-name]]
+    build:
+      context: ./[[admin-name]]
+      dockerfile: dockerfile-[[admin-name]]
+    command: >
+      bash -c "npm install && npm run dev"
+    volumes:
+      - ./[[admin-name]]:/usr/src
+    ports:
+      - "3200:3000"
+  web:
+    container_name: [[web-name]]
+    image: [[app-owner]]/[[web-name]]
+    build:
+      context: ./[[web-name]]
+      dockerfile: dockerfile-[[web-name]]
+    command: >
+      bash -c "npm install && npm run dev"
+    volumes:
+      - ./[[web-name]]:/usr/src
+    ports:
+      - "3000:3000"
+
+  #############
+  # POSTGRES
+  #########
+
+  db:
+    env_file:
+         - pg.env
+    build:
+
+        context: ./db
+        dockerfile: dockerfile-db
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${LB_POSTGRES_PASSWORD}
+      - POSTGRES_DB=[[db-prefix]]_db
+      - DB_ANON_ROLE=guest
+      - DB_SCHEMA=[[db-prefix]]_schema
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASS="${LB_DB_PASS}"
+
+    volumes:
+      # anything in initdb directory is created in the database
+      # see "How to extend this image" section at https://hub.docker.com/r/_/postgres/
+      #      - "./[[db-prefix]]-db/pg-database/db-scripts/compiled-scripts:/docker-entrypoint-initdb.d"
+
+      - "./db/sql:/docker-entrypoint-initdb.d"
+
+      # Uncomment this if you want to persist the data.
+
+      - "~/.data/[[db-prefix]]_db/pgdata:/var/lib/postgresql/data"
+
+    networks:
+      - postgrest-backend
+
+    restart: always
+
+  ##########
+  # POSTGRREST
+  #####
+
+  api:
+    #container_name: postgrest
+    image: postgrest/postgrest:latest
+
+    ports:
+      - "3100:3000"
+
+    environment:
+      # The standard connection URI format, documented at
+      # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
+
+      PGRST_DB_URI: postgres://postgres:[[LB_POSTGRES_PASSWORD]]@db:5432/[[db-prefix]]_db
+      PGRST_DB_SCHEMA: [[db-prefix]]_schema
+      PGRST_DB_ANON_ROLE: guest
+
+    depends_on:
+      - db
+
+    links:
+
+      - db:db
+
+    networks:
+      - postgrest-backend
+
+    restart: always
+
+networks:
+  postgrest-backend:
+    driver: bridge

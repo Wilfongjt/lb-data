@@ -1,0 +1,66 @@
+# change these to match your project
+
+export LB_ENV=[[LB_ENV]]
+export LB_WORKING_NAME=[[LB_WORKING_NAME]]
+
+export LB_BRANCH=[[LB_BRANCH]]
+export LB_APP_NAME=[[LB_APP_NAME]]
+export LB_APP_PREFIX=[[LB_APP_PREFIX]]
+
+export LB_PROJECT_NAME=[[LB_PROJECT_NAME]]
+
+export LB_GIT_OWNERNAME=[[LB_GIT_OWNERNAME]]
+export LB_GIT_PROJECT=[[LB_GIT_PROJECT]]
+
+export LB_WORKING_FOLDER=~/${LB_WORKING_NAME}
+export LB_DB_PREFIX=${LB_APP_PREFIX}
+export LB_POSTGRES_PASSWORD=[[LB_POSTGRES_PASSWORD]]
+export LB_DB_PASS=[[LB_DB_PASS]]
+export LB_DATA_FOLDER_NAME=.data
+
+export LB_DATA_FOLDER=~/${LB_DATA_FOLDER_NAME}
+
+#export LB_CODE_FOLDER=~/${LB_WORKING_NAME}/code
+#export LB_PROJECTS_FOLDER=~/${LB_WORKING_NAME}/projects
+#export LB_TESTING_FOLDER=~/${LB_WORKING_NAME}/testing
+
+echo "LB_ENV is ${LB_ENV}"
+echo "LB_BRANCH is ${LB_BRANCH}"
+echo "LB_APP_NAME is ${LB_APP_NAME}"
+echo "LB_APP_PREFIX is ${LB_APP_PREFIX}"
+echo "LB_DB_PREFIX is ${LB_DB_PREFIX}"
+
+echo "LB_GIT_OWNERNAME is ${LB_GIT_OWNERNAME}"
+echo "LB_GIT_PROJECT is ${LB_GIT_PROJECT}"
+
+echo "LB_WORKING_NAME is ${LB_WORKING_NAME}"
+echo "LB_WORKING_FOLDER is ${LB_WORKING_FOLDER}"
+
+echo "LB_DATA_FOLDER is ${LB_DATA_FOLDER}"
+
+echo "LB_POSTGRES_PASSWORD is ${LB_POSTGRES_PASSWORD}"
+echo "LB_DB_PASS is ${LB_DB_PASS}"
+#echo "LB_CODE_FOLDER is ${LB_CODE_FOLDER}"
+#echo "LB_PROJECTS_FOLDER is ${LB_PROJECTS_FOLDER}"
+#echo "LB_TESTING_FOLDER is ${LB_TESTING_FOLDER}"
+
+
+# Folders
+# /<working-folder>
+#     - /<code-folder>
+#     --- /<umbrella-folder>
+#     ----- /<branch-folder>
+#     --------- / <app-folder>
+#     ----------- /db
+#     ------------- /sql
+#     ----------- /web
+#     - /<projects-folder>
+#     --- / <project-folder>-dev
+#     - /<testing-folder>
+#     -- /<code-folder>
+#     --- /<umbrella-folder>
+#     ----- /<branch-folder>
+#     --------- /<app-folder>
+#     ----------- /db
+#     ------------- /sql
+#     ----------- /web
