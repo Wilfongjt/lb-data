@@ -1,12 +1,14 @@
 \c [[db-prefix]]_db
-
+-- select [[db-prefix]]_schema.credential(current_setting('app.lb_register_guest')::jsonb);
+/*
 INSERT INTO [[db-prefix]]_schema.credentials(
     crd_email,
     crd_password,
-    crd_user
+    crd_row
 ) VALUES (
     'guest@[[LB_APP_PREFIX]].com',
     current_setting('app.lb_web_guest_password'),
     '{"username":"guest@[[LB_APP_PREFIX]].com", "roles": ["guest"]}'::jsonb
 );
+*/
 

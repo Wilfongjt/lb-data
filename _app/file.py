@@ -161,7 +161,7 @@ def main():
 
     folder = '{}/temp'.format(str(Path.home()))
     file_name = 'junk2.txt'
-    print('folder',folder)
+    #print('folder',folder)
     if not Util().folder_exists(folder):
       Util().createFolder(folder)
 

@@ -3,7 +3,7 @@ from pathlib import Path
 from util import Util
 from dotenv import load_dotenv
 import shutil
-
+import json
 class AppSettings():
     def __init__(self):
         #~/<work-folder-name>/projects/<project-name>/
@@ -12,51 +12,82 @@ class AppSettings():
         #### LOCAL
         os.environ['LB_ENV']= self.lbenv = os.getenv('LB_ENV') or 'dev'
         os.environ['LB_WORKING_NAME']= self.lbworking_name = os.getenv('LB_WORKING_NAME') or '..LyttleBit'
+
         ######### PASSWORDS
         os.environ['LB_JWT_PASSWORD']=self.lbjwt_password =  os.getenv('LB_JWT_PASSWORD') or 'PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG'
         os.environ['LB_DB_PASS']=self.lbdb_password =  os.getenv('LB_DB_PASS') or self.lbjwt_password
         os.environ['LB_POSTGRES_PASSWORD'] = self.lbpostgres_password = os.getenv('LB_POSTGRES_PASSWORD') or self.lbjwt_password
         os.environ['LB_SECRET_PASSWORD'] = self.lbsecret_password = os.getenv('LB_SECRET_PASSWORD') or self.lbjwt_password
         os.environ['LB_WEB_PASSWORD'] = self.lbweb_password = os.getenv('LB_WEB_PASSWORD') or self.lbjwt_password
-        os.environ['LB_WEB_GUEST_PASSWORD'] = self.lbweb_guest_password = os.getenv('LB_WEB_GUEST_PASSWORD') or self.lbjwt_password
+        #os.environ['LB_WEB_GUEST_PASSWORD'] = self.lbweb_guest_password = os.getenv('LB_WEB_GUEST_PASSWORD') or self.lbjwt_password
         os.environ['LB_ADMIN_PASSWORD'] = self.lbadmin_password = os.getenv('LB_ADMIN_PASSWORD') or self.lbjwt_password
         os.environ['LB_ADMIN_GUEST_PASSWORD'] = self.lbadmin_guest_password = os.getenv('LB_ADMIN_GUEST_PASSWORD') or self.lbjwt_password
         os.environ['LB_ADMIN_REGISTRAR_PASSWORD'] = self.lbadmin_registrar_password = os.getenv('LB_ADMIN_REGISTRAR_PASSWORD') or self.lbjwt_password
 
         ######### PROJECT
-        os.environ['LB_PROJECT_NAME']=self.lbproject_name = os.getenv('LB_PROJECT_NAME') or 'example'
-        os.environ['LB_PROJECT_PREFIX']=self.lbproject_prefix = os.getenv('LB_PROJECT_PREFIX') or 'ex'
+        # os.environ['LB_PROJECT'] = os.getenv('LB_PROJECT') or '{"name":"register", "prefix":"reg"}'
+
+        self.lb_project = self.load('LB_PROJECT', {"name":"register", "prefix":"reg", "owner":"Wilfongjt"})
+        #print('lb_project',self.lb_project)
+        os.environ['LB_PROJECT_NAME']=os.getenv('LB_PROJECT_NAME') or self.lb_project['name']
+        os.environ['LB_PROJECT_PREFIX']=os.getenv('LB_PROJECT_PREFIX') or self.lb_project['prefix']
 
         ########## GIT
-        os.environ['LB_GIT_PROJECT']=self.lbgit_project = os.getenv('LB_GIT_PROJECT') or self.lbproject_name
-        os.environ['LB_BRANCH']=self.lbbranch = os.getenv('LB_BRANCH') or '#01.initialize.{}'.format(self.lbproject_name)
-        os.environ['LB_GIT_OWNERNAME']=self.lbgit_owner= os.getenv('LB_GIT_OWNERNAME') or 'Wilfongjt'
+        self.lb_git = self.load('LB_GIT', {"branch":"#01.initialize.{}".format(self.lb_project['name']), "owner":"Wilfongjt"})
+        #print('lb_git',self.lb_git)
+        os.environ['LB_GIT_PROJECT']=os.getenv('LB_GIT_PROJECT') or self.lb_project['name']
+        #self.lbgit_project = os.getenv('LB_GIT_PROJECT') or self.lb_project['name']
+        # os.environ['LB_BRANCH']=self.lbbranch = os.getenv('LB_BRANCH') or '#01.initialize.{}'.format(self.lbproject_name)
+        os.environ['LB_BRANCH']=os.getenv('LB_BRANCH') or '#01.initialize.{}'.format(self.lb_project)
+        #os.environ['LB_GIT_OWNERNAME']=self.lbgit_owner= os.getenv('LB_GIT_OWNERNAME') or 'Wilfongjt'
+        os.environ['LB_GIT_OWNERNAME']=os.getenv('LB_GIT_OWNERNAME') or 'Wilfongjt'
 
         ######### APPLICATION
-        os.environ['LB_APP_NAME']=self.lbapp_name = os.getenv('LB_APP_NAME') or self.lbproject_name
-        os.environ['LB_APP_PREFIX']=self.lbapp_prefix = os.getenv('LB_APP_PREFIX') or self.lbproject_prefix
+        os.environ['LB_APP_NAME'] = os.getenv('LB_APP_NAME') or self.lb_project['name']
+        os.environ['LB_APP_PREFIX'] = os.getenv('LB_APP_PREFIX') or self.lb_project['prefix']
+        #os.environ['LB_APP_NAME']=self.lbapp_name = os.getenv('LB_APP_NAME') or self.lb_project['name']
+        #os.environ['LB_APP_PREFIX']=self.lbapp_prefix = os.getenv('LB_APP_PREFIX') or self.lb_project['prefix']
+        #
+        os.environ['LB_REGISTER_JWT'] = os.getenv('LB_REGISTER_JWT') or '{"name":"jwt@register.com","password":"?1?!????","role":"jwt"}'
+        os.environ['LB_REGISTER_GUEST'] = os.getenv('LB_REGISTER_GUEST') or '{"name":"guest@register.com","password":"?1?!????","role":"guest"}'
+        os.environ['LB_REGISTER_EDITOR'] = os.getenv('LB_REGISTER_EDITOR') or '{"name":"editor@register.com","password":"?1?!????","role":"editor"}'
+        os.environ['LB_REGISTER_REGISTRAR'] = os.getenv('LB_REGISTER_REGISTRAR') or '{"name":"registrar@register.com","password":"?1?!????","role":"registrar"}'
+
+        self.lbregister_jwt = json.loads(os.environ['LB_REGISTER_JWT'])
+        self.lbregister_guest = json.loads(os.environ['LB_REGISTER_GUEST'])
+        self.lbregister_editor = json.loads(os.environ['LB_REGISTER_EDITOR'])
+        self.lbregister_registrar = json.loads(os.environ['LB_REGISTER_REGISTRAR'])
+
+
+        #os.environ['LB_WEB_GUEST']=self.lbweb_guest=os.getenv('LB_WEB_GUEST') or '{"name":"guest@test.com","password":"g1G!gggg","role":"guest"}'
+        #self.lbweb_guest=json.loads(self.lbweb_guest)
+        #print('lbweb_guest', self.lbweb_guest , type(self.lbweb_guest ))
         os.environ['LB_WEB_GUEST_PASSWORD']=self.lbapp_guest_password = os.getenv('LB_WEB_GUEST_PASSWORD') or '?1?!????'
-        os.environ['LB_ADMIN_REGISTRAR_NAME']=self.lbapp_registrar_name= os.getenv('LB_ADMIN_REGISTRAR_NAME') or self.lbgit_owner
+        os.environ['LB_ADMIN_REGISTRAR_NAME']=self.lbapp_registrar_name= os.getenv('LB_ADMIN_REGISTRAR_NAME') or self.lb_git['owner']
         os.environ['LB_ADMIN_REGISTRAR_PASSWORD'] = self.lbapp_registrar_password = os.getenv('LB_ADMIN_REGISTRAR_PASSWORD') or '?1?!????'
+
+        os.environ['LB_WEB_GUEST_ROLE'] = self.lbweb_guest_role = os.getenv('LB_WEB_GUEST_ROLE') or 'guest'
 
         ######### DATABASE
         os.environ['LB_DATA_FOLDER_NAME']=self.lbdata_folder_name = os.getenv('LB_DATA_FOLDER_NAME') or '.data'
         os.environ['LB_DB_TYPE']=self.lbdb_type = os.getenv('LB_DB_TYPE') or 'postgres'
         os.environ['LB_DB_TYPE_ABBR']=self.lbdb_type_abbr = os.getenv('LB_DB_TYPE_ABBR') or 'pg'
 
-        os.environ['LB_DB_PREFIX']=self.lbdb_prefix = os.getenv('LB_DB_PREFIX') or self.lbproject_prefix
+        os.environ['LB_DB_PREFIX']=self.lbdb_prefix = os.getenv('LB_DB_PREFIX') or self.lb_project['prefix']
 
-        self.lbdata_folder = os.getenv('LB_DATA_FOLDER') or '{}/.data/{}_db'.format(self.getHomeFolder(), self.lbproject_prefix)
+        self.lbdata_folder = os.getenv('LB_DATA_FOLDER') or '{}/.data/{}_db'.format(self.getHomeFolder(), self.lb_project['prefix'])
+
         ######### Code
         self.lbcode_folder = os.getenv('LB_CODE_FOLDER') or '{}/{}/code'.format(self.getHomeFolder(), self.lbworking_name)
 
-
         self.working_folder_name = '{}'.format(self.lbworking_name)
-        self.project_folder_name = '{}-{}'.format(self.lbproject_name, self.lbenv)
+        self.project_folder_name = '{}-{}'.format(self.lb_project['name'], self.lbenv)
 
         #self.umbrella_folder_name = '01-{}'.format(self.lbgit_project)
-        self.umbrella_folder_name = '01-{}'.format(self.lbgit_project)
+        #print('lbgit_project folder', self.lbgit_project)
 
+        self.umbrella_folder_name = '01-{}'.format(self.lb_git['name'])
+        #print('umbrella folder', self.umbrella_folder_name)
         if not Util().folder_exists(self.lbcode_folder):
             Util().createFolder(self.lbcode_folder)
 
@@ -64,12 +95,12 @@ class AppSettings():
             # switch to a disposable folder
             self.working_folder_name = '{}'.format(self.lbworking_name)
             self.project_child_folders = {
-                'code-folder': 'code/{}/{}/{}'.format(self.umbrella_folder_name, self.lbbranch, self.lbgit_project),
-                'script-folder': 'code/{}/{}'.format(self.umbrella_folder_name, self.lbbranch),
-                'db-folder': 'code/{}/{}/{}/db'.format(self.umbrella_folder_name, self.lbbranch, self.lbgit_project),
-                'sql-folder': 'code/{}/{}/{}/db/sql'.format(self.umbrella_folder_name, self.lbbranch, self.lbgit_project),
-                'web-folder': 'code/{}/{}/{}/web'.format(self.umbrella_folder_name, self.lbbranch, self.lbgit_project),
-                'admin-folder': 'code/{}/{}/{}/admin'.format(self.umbrella_folder_name, self.lbbranch, self.lbgit_project),
+                'code-folder': 'code/{}/{}/{}'.format(self.umbrella_folder_name, self.lb_git['branch'], self.lb_git['name']),
+                'script-folder': 'code/{}/{}'.format(self.umbrella_folder_name, self.lb_git['branch']),
+                'db-folder': 'code/{}/{}/{}/db'.format(self.umbrella_folder_name, self.lb_git['branch'], self.lb_git['name']),
+                'sql-folder': 'code/{}/{}/{}/db/sql'.format(self.umbrella_folder_name, self.lb_git['branch'], self.lb_git['name']),
+                'web-folder': 'code/{}/{}/{}/web'.format(self.umbrella_folder_name, self.lb_git['branch'], self.lb_git['name']),
+                'admin-folder': 'code/{}/{}/{}/admin'.format(self.umbrella_folder_name, self.lb_git['branch'], self.lb_git['name']),
 
                 'con-fig-folder': 'projects/{}/common/config'.format( self.project_folder_name),
                 'temp-lates-folder': 'projects/{}/common/templates'.format(self.project_folder_name),
@@ -88,6 +119,12 @@ class AppSettings():
                }
 
             #print('Environ', self.getEnvJSON())
+
+    def load(self, key, default):
+        rc =  os.getenv(key) or json.dumps(default)
+
+        rc = json.loads(rc)
+        return rc
 
     def getEnvJSON(self):
         rc = {}
@@ -136,8 +173,6 @@ class AppSettings():
             if 'code/' in self.project_child_folders[key]:
                 rc[key] = self.project_child_folders[key]
         return rc
-
-
 
     def removeFolders(self, project_folder):
         '''
@@ -255,7 +290,11 @@ class AppSettings():
         return rc
 
     def to_api(self, filename, api_method):
-        return self.file_name_to(filename, 'table-api-{}'.format(api_method))
+        parts = filename.split('.')
+        if len(parts) != 4:
+            raise Exception('to_api expects a 4 part file name not {}'.format(filename))
+
+        return '{}.{}.{}.{}'.format( parts[0], 'table-api-{}'.format(api_method), parts[2], 'json')
 
     def to_tmpl(self, filename, source_key='temp-lates-folder'):
         parts = filename.split('.')
@@ -534,7 +573,7 @@ class AppSettingsTest(AppSettings):
 
 def main():
     from util import Util
-    from mockup_test_data import   MockupData
+    #from mockup_test_data import   MockupData
 
     print('* Test AppSettings')
     os.environ['LB-TESTING'] = '1'
@@ -549,22 +588,24 @@ def main():
 
     lbenv = os.getenv('LB_ENV') or 'dev'
     lbworking_name = os.getenv('LB_WORKING_NAME') or '..LyttleBit'
-    lbproject_name = os.getenv('LB_PROJECT_NAME') or 'example'
-
+    #lbproject_name = os.getenv('LB_PROJECT_NAME') or 'example'
+    lb_project = {"name":"register", "prefix":"reg", "owner":"Wilfongjt"}
 
     working_folder_name = '{}'.format(lbworking_name)
-    project_folder_name = '{}-{}'.format(lbproject_name, lbenv)
+    project_folder_name = '{}-{}'.format(lb_project['name'], lbenv)
 
     print('  - env                 |', lbenv , appSettings.lbenv)
     print('  - working_name        |', lbworking_name, appSettings.lbworking_name)
     print('  - work-folder-name    |', working_folder_name, appSettings.working_folder_name)
-    print('  - project_name        |', lbproject_name, appSettings.lbproject_name)
+    print('  - project_name        |', lb_project['name'], appSettings.lb_project['name'])
     print('  - project_folder_name |', project_folder_name, appSettings.project_folder_name)
+    print('  - resource-folder     |', appSettings.getResourceFolder())
+    print('  - projectFolders      |', appSettings.getProjectFolders())
 
     assert( appSettings.lbenv in ['dev','test'])
     assert( appSettings.lbworking_name == lbworking_name)
     assert( appSettings.working_folder_name == '{}'.format( lbworking_name))
-    assert( appSettings.lbproject_name == lbproject_name)
+    assert( appSettings.lb_project['name'] == lb_project['name'])
     assert( appSettings.project_folder_name == project_folder_name)
 
     if lbenv != 'prod':
@@ -679,7 +720,7 @@ def main():
     assert( appSettings.to_tmpl('anonymous.role-create.pg.json') == 'anonymous.role-create.pg.tmpl._DEP')
     assert( appSettings.to_tmpl('get_id.function.pg.json') == 'get_id.function.pg.tmpl')
     '''
-    appSettings.removeFolders()
+    #appSettings.removeFolders()
 if __name__ == "__main__":
     main()
 

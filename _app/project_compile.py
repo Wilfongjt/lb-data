@@ -5,6 +5,17 @@ from configuration_file import ConfigurationDict
 from template_file import TemplateFile
 from context_dict import ContextDict
 from resource_name import ResourceName
+#from helper_insert_format import HelperInsertFormat
+from helper_required_insert_attributes_format import HelperRequiredInsertAttributesFormat
+from helper_declare_upsert_format import HelperDeclareUpsertFormat
+from helper_where_clause_format import HelperWhereClauseFormat
+from helper_set_clause_format import HelperSetClauseFormat
+from helper_set_defaults_format import HelperSetDefaultsFormat
+from helper_sync_json_values_format import HelperSyncJSONValuesFormat
+from helper_insert_columns_format import HelperInsertColumnsFormat
+from helper_insert_values_format import HelperInsertValuesFormat
+from helper_required_input_attributes_format import HelperRequiredInputAttributesFormat
+from helper_update_combos_format import HelperUpdateCombosFormat
 #from template_compiled_file import ResourceName, TemplateCompiledFile
 #from helper_template_compile import HelperTemplateCompile
 from app_settings import AppSettings
@@ -157,8 +168,31 @@ class ProjectCompile(Step):
     '''
 
     def _expand(self, line):
+
         lines = []
-        if '[[insert-parameter-types]]' in line:
+        if  '[[update_combos_format]]' in line:
+            lines = HelperUpdateCombosFormat().set_dictionary(self.getConfigFile()).format()
+        elif '[[required_input_attributes]]' in line:
+            lines = HelperRequiredInputAttributesFormat().set_dictionary(self.getConfigFile()).format()
+        elif '[[insert-values]]' in line:
+            lines = HelperInsertValuesFormat().set_dictionary(self.getConfigFile()).format()
+        elif '[[insert-columns]]' in line:
+            lines = HelperInsertColumnsFormat().set_dictionary(self.getConfigFile()).format()
+        elif '[[sync-json-values]]' in line:
+            lines = HelperSyncJSONValuesFormat().set_dictionary(self.getConfigFile()).format()
+        elif '[[set-defaults]]' in line:
+            lines = HelperSetDefaultsFormat().set_dictionary(self.getConfigFile()).format()
+        elif '[[declare-upsert]]' in line:
+            lines = HelperDeclareUpsertFormat().set_dictionary(self.getConfigFile()).format()
+        elif '[[where-clause]]' in line:
+            lines = HelperWhereClauseFormat().set_dictionary(self.getConfigFile()).format()
+        elif '[[set-clause]]' in line:
+            lines = HelperSetClauseFormat().set_dictionary(self.getConfigFile()).format()
+        elif '[[required-insert-attributes]]' in line:
+            lines = HelperRequiredInsertAttributesFormat().set_dictionary(self.getConfigFile()).format()
+        #elif '[[insert-statement]]' in line:
+        #    lines =  HelperInsertFormat().set_dictionary(self.getConfigFile()).format()
+        elif '[[insert-parameter-types]]' in line:
             lines = self._expandParameterTypes('C')
         elif '[[select-parameter-types]]' in line:
             lines = self._expandParameterTypes('R')
@@ -176,12 +210,12 @@ class ProjectCompile(Step):
             #print('    - update-settings found')
             #lines = self._expandUpdateColumns()
             lines = self._expandUpdateSettings()
-        elif '[[insert-values]]' in line: # db-api-table-table.pg.tmpl
-            #print('    - insert-values found')
-            lines = self._expandInsertValues()
-        elif '[[insert-columns]]' in line:
-            #print('    - insert-columns found') # db-api-table-table.pg.tmpl
-            lines = self._expandInsertColumns()
+        #elif '[[insert-values]]' in line: # db-api-table-table.pg.tmpl
+        #    #print('    - insert-values found')
+        #    lines = self._expandInsertValues()
+        #elif '[[insert-columns]]' in line:
+        #    #print('    - insert-columns found') # db-api-table-table.pg.tmpl
+        #    lines = self._expandInsertColumns()
         elif '[[insert-parameters]]' in line: # db-api-table-table.pg.tmpl
             #print('    - insert-parameters found')
             lines = self._expandInsertParameters()
@@ -194,7 +228,6 @@ class ProjectCompile(Step):
             #super().append(line)
             lines.append(line)
         return lines
-
 
 
     def _expandUpdateParameters(self):
@@ -273,6 +306,7 @@ class ProjectCompile(Step):
 
         return lines
     '''
+    '''
     def _expandInsertValues(self):
         lines = []
         # raise Exception('_expandInsertValues not defined')
@@ -305,7 +339,8 @@ class ProjectCompile(Step):
 
             #lines.append('({});'.format(parameters))
         return lines
-
+    '''
+    '''
     def _expandInsertColumns(self):
         lines = []
         #raise Exception('_expandInsertColumns not defined')
@@ -330,17 +365,10 @@ class ProjectCompile(Step):
                         lines[len(lines)-1] = lines[len(lines)-1] + ','
 
                     lines.append('[[tbl-prefix]]_{}'.format(t['name']))
-            '''
-            if 'defaultValue' in t: #what is it
-                if 'default' in t: # should it be added
-                    if 'C' in t['default'].upper():# is it an Insert
-                        if len(lines) > 0:
-                            lines[len(lines) - 1] = lines[len(lines) - 1] + ','
-                        lines.append('_{}'.format(t['name'])) # add the column name
-            '''
+         
         #lines.append('({})'.format(parameters))
         return lines
-
+    '''
     def _expandParameterTypes(self, targetType):
         lines = []
         # inject_tag used to find place to inject parameters
@@ -463,16 +491,19 @@ class ProjectCompile(Step):
 
         # add fields to list
         for f in self.getConfigFile()[tag]: # field by field
-            ln = self.getContext()[f['context']] # get context.template.list key
-            if ln == None:
-                raise NameError('Unknown Context', f['context'])
 
-            ln = self._templatize(f, ln) # go get template
-            if i < sz: # check for last field
-                ln = '{},'.format(ln)
-            ln = '  {}\n'.format(ln)
-            #self.targetTemplateFile.append(ln) # add line to
-            lines.append(ln)
+            if 'crud' in f and len(f['crud'])>0:
+                #print('field', f)
+                ln = self.getContext()[f['context']] # get context.template.list key
+                if ln == None:
+                    raise NameError('Unknown Context', f['context'])
+
+                ln = self._templatize(f, ln) # go get template
+                if i < sz: # check for last field
+                    ln = '{},'.format(ln)
+                ln = '  {}\n'.format(ln)
+                #self.targetTemplateFile.append(ln) # add line to
+                lines.append(ln)
             i += 1
 
         return lines

@@ -17,19 +17,27 @@
             "name": "app_name",
             "context": "name",
             "type": "TEXT",
-            "crud": "cr"
+            "crud": "cru",
+            "json": "cru"
         }, {
             "name": "version",
             "context": "version",
             "type": "TEXT",
-            "crud": "cr",
-            "default": "1.0.0"
+            "crud": "ru",
+            "default": "1.0.0",
+            "json": "cru"
         },{
             "name": "token",
             "context": "token",
             "type": "TEXT",
-            "crud": "r"
-        }, {
+            "json": "cru"
+        },{
+            "name": "row",
+            "context": "row",
+            "description": "JSON record",
+            "type": "JSONB",
+            "crud": "cru"
+        },{
             "name": "created",
             "context": "created",
             "type": "timestamp",

@@ -5,7 +5,7 @@ from pathlib import Path
 import settings
 
 print('os.getenv', os.getenv('LB_WORKING_FOLDER_NAME'))
-
+print('change projects in .env')
 def main():
     from app import App
 
@@ -24,8 +24,8 @@ def main():
     from project_move_to_sql import ProjectMoveToSQL
     from project_organize_files import ProjectOrganizeFiles
 
-    os.environ['LB-TESTING'] = '0'
     os.environ['LB-TESTING'] = '1'
+    os.environ['LB-TESTING'] = '0'
 
     # check env variable
     for v in os.environ:

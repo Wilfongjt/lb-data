@@ -81,8 +81,8 @@ class ProjectMerge(Step):
 
         # output file
         mrgFile = TemplateFile(mrg_res.getFolder(), mrg_res.getFileName())
-        print('confFile', confFile)
-        print('env',os.environ)
+        #print('confFile', confFile)
+        #print('env',os.environ)
         # merge template and configuration
         for line in cmplFile:
             # for each line check for tags and inject replacement value(s)
@@ -149,7 +149,7 @@ def main():
     assert( len(filelist) > 0)
     for fn in filelist:
         assert(Util().file_exists(appSettings.getFolder('expanded-folder'),fn))
-        print('folder',appSettings.getFolder('merged-folder'),'file',fn)
+        #print('folder',appSettings.getFolder('merged-folder'),'file',fn)
         tFile = TemplateFile(appSettings.getFolder('expanded-folder'),fn)\
             .read()
 

@@ -3,7 +3,7 @@
 
     "created": "[[tbl-prefix]]_created timestamp without time zone DEFAULT CURRENT_TIMESTAMP",
 
-    "email": "[[tbl-prefix]]_[[name]] varchar(256) check ( [[tbl-prefix]]_email ~* '^.+@.+\\..+$' )",
+    "email": "[[tbl-prefix]]_[[name]] varchar(256) check ( [[tbl-prefix]]_[[name]] ~* '^.+@.+\\..+$' )",
 
     "fk": "[[tbl-prefix]]_[[name]] integer NOT NULL",
 
@@ -15,8 +15,11 @@
     "longitude": "[[tbl-prefix]]_[[name]] numeric(17,14) NOT NULL",
 
     "name": "[[tbl-prefix]]_[[name]] varchar(256) not null check (length([[tbl-prefix]]_[[name]]) < 256)",
+    "dep pass word": "[[tbl-prefix]]_[[name]] varchar(256) check ( [[tbl-prefix]]_[[name]] ~* '^.+@.+\\..+$' )",
 
-    "password": "[[tbl-prefix]]_[[name]] varchar(512) not null check (length([[tbl-prefix]]_password) < 512)",
+    "dep-password": "[[tbl-prefix]]_[[name]] varchar(512) not null check ([[db-prefix]]_schema.validate_password([[tbl-prefix]]_[[name]]))",
+    "password": "[[tbl-prefix]]_[[name]] varchar(256) not null",
+
     "pgcrypto": "create extension IF NOT EXISTS pgcrypto;",
     "pgtap": "CREATE EXTENSION IF NOT EXISTS pgtap;",
     "pgjwt": "CREATE EXTENSION IF NOT EXISTS pgjwt;",
@@ -25,9 +28,14 @@
     "dep-role-editor": "[[tbl-prefix]]_role varchar(25) DEFAULT 'editor'",
     "dep-role": "[[tbl-prefix]]_[[name]] varchar(256) not null check (length([[tbl-prefix]]_role) <= 256)",
     "dep-roles": "[[tbl-prefix]]_roles jsonb not null",
-    "user": "[[tbl-prefix]]_user jsonb not null",
 
+    "user": "[[tbl-prefix]]_[[name]] jsonb not null",
+    "row": "[[tbl-prefix]]_[[name]] jsonb not null",
+    "roles": "",
     "token": "[[tbl-prefix]]_token varchar(1000) check (length([[tbl-prefix]]_token) <= 1000)",
     "updated": "[[tbl-prefix]]_updated timestamp without time zone DEFAULT CURRENT_TIMESTAMP",
-    "version": "[[tbl-prefix]]_version varchar(25) not null check (length([[tbl-prefix]]_version) < 25) DEFAULT '1.0.0'"
+    "version": "[[tbl-prefix]]_version varchar(25) not null check (length([[tbl-prefix]]_version) < 25) DEFAULT '1.0.0'",
+
+    "confirm-token-username": "[[tbl-prefix]]_[[name]]=[[db-prefix]]_schema.get_username(_token)::TEXT",
+    "confirm-id": "[[tbl-prefix]]_[[name]]= cast(_json::jsonb ->> 'id' as integer)"
 }

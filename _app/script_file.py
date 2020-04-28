@@ -12,7 +12,7 @@ class ScriptFile(FileAsList):
         if self.getFolderName() == None:
             # default to source code resource, assume we are going to copy
             self.setFolderName(AppSettingsTest().getFolder('temp-folder'))
-            print('self.getFolderName()', self.getFolderName())
+            #print('self.getFolderName()', self.getFolderName())
 
     #def getFileName(self):
     #    return '{}.{}'.format(self.getPrefix(super().getFileName()),super().getFileName())
@@ -63,7 +63,7 @@ class ScriptFile(FileAsList):
                 if '[[' in line:
 
                     print('  -- script file', self)
-                    print('lyttleparser: ', LyttleParser(line).parse())
+                    #print('lyttleparser: ', LyttleParser(line).parse())
                     raise Exception('Unresolved tag {} in {}'.format(line, self.getFileName()))
 
                 f.write('{}\n'.format(line))

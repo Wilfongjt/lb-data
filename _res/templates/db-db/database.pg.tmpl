@@ -15,6 +15,16 @@ SET search_path TO [[db-prefix]]_schema, public; -- put everything in [[db-prefi
 
 -- the following should be set by the admin manually, it is set here for convenience
 ALTER DATABASE [[db-prefix]]_db SET "app.jwt_secret" TO '[[LB_JWT_PASSWORD]]';
+
+ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_jwt" TO '[[LB_REGISTER_JWT]]';
+ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_guest" TO '[[LB_REGISTER_GUEST]]';
+ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_editor" TO '[[LB_REGISTER_EDITOR]]';
+ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_registrant" TO '[[LB_REGISTER_REGISTRANT]]';
+ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_registrar" TO '[[LB_REGISTER_REGISTRAR]]';
+ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_testuser" TO '[[LB_REGISTER_TESTUSER]]';
+
+ALTER DATABASE [[db-prefix]]_db SET "app.lb_web_guest" TO '[[LB_WEB_GUEST]]';
+ALTER DATABASE [[db-prefix]]_db SET "app.lb_web_guest_role" TO '[[LB_WEB_GUEST_ROLE]]';
 ALTER DATABASE [[db-prefix]]_db SET "app.lb_web_guest_password" TO '[[LB_WEB_GUEST_PASSWORD]]';
 ALTER DATABASE [[db-prefix]]_db SET "app.lb_admin_registrar_password" TO '[[LB_ADMIN_REGISTRAR_PASSWORD]]';
 

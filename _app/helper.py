@@ -9,6 +9,10 @@ class Helper():
         #self.data = None
         self.step = step
         self.default_folder = '{}/temp'.format(str(Path.home()))
+        self.object_types = ['JSONB']
+        self.unquoted_types = ['INTEGER', 'BOOLEAN']
+        self.quoted_types = ['TEXT', 'TIMESTAMP']
+        self.dictionary = None
     '''
     def setData(self, data):
         self.data = data

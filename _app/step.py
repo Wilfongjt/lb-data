@@ -13,18 +13,6 @@ class Step(Link):
 
     def __init__(self):
         super().__init__()
-        self.data=None
-        self.copyFile = None
-        self.default_folder = None # '{}/temp'.format(str(Path.home()))
-        self.child_folder_dict = AppSettings().getProjectFolders()
-        self.lbproject_name = os.getenv('LB_PROJECT_NAME') or 'example'
-        self.working_folder_name_default='example'
-        self.env_default = 'dev'
-        self.description = ['NEED TO ADD DESCRIPTION']
-
-        #self.set('LB_ENV', self.env_default)
-        #self.set('LB_WORKING_FOLDER_NAME', '{}_{}'.format(self.working_folder_name_default, self.env_default))
-        #self.set('LB_PROJECT_NAME', )
 
         # use for testing,  set os.environ['LB-TESTING'] = '1' to turn or '0' to turn off
 
@@ -32,8 +20,16 @@ class Step(Link):
         self.lbtesting = os.getenv('LB-TESTING') or '0'
         if self.lbtesting == '1':
             self.appSettings = AppSettingsTest()
-            # default to source code resource, assume we are going to copy
-            #self.setFolderName(AppSettingsTest().getFolder('temp-lates-folder'))
+
+        self.data = None
+        self.copyFile = None
+        self.default_folder = None  # '{}/temp'.format(str(Path.home()))
+        self.child_folder_dict = AppSettings().getProjectFolders()
+        # self.lbproject_name = os.getenv('LB_PROJECT_NAME') or 'example'
+        #self.lbproject_name =
+        self.working_folder_name_default = 'example'
+        self.env_default = 'dev'
+        self.description = ['NEED TO ADD DESCRIPTION']
 
         self.fixEnv()
 

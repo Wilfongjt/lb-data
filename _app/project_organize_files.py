@@ -51,12 +51,12 @@ class ProjectOrganizeFiles(Step):
         # convert all conf files to temp/files
         for file_name in file_name_list:
             if 'docker' in file_name:
-                print('docker {}'.format(file_name))
+                #print('docker {}'.format(file_name))
                 fromFile = TemplateFile(temp_folder,file_name)
                 toFile = TemplateFile(docker_folder, 'docker-compose.yml')
                 HelperCopyFile(fromFile, toFile, step=self).run()
             else:
-                print('sql {}'.format(file_name))
+                #print('sql {}'.format(file_name))
                 fromFile = TemplateFile(temp_folder, file_name)
                 toFile = TemplateFile(script_folder, file_name)
                 HelperCopyFile(fromFile, toFile).run()

@@ -49,7 +49,7 @@ class ProjectInitialize(Step):
 
         for folder in folder_list:
             if '_DEP' not in folder:
-                print('folder', folder)
+                #print('folder', folder)
                 file_list = Util().getFileList(folder, '.json')
                 # copy config from resource
                 for fn in file_list:

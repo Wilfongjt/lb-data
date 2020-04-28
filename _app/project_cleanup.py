@@ -12,10 +12,10 @@ class ProjectCleanup(Step):
     def process(self):
         #temp folder cleanup
         self.getData()
-        print('data', self.getData())
+        #print('data', self.getData())
         temp_folder = self.getFolder('temp-folder')
         ext_list = ['.compiled', '.tmpl','.json']
-        print('Cleanup ', temp_folder)
+        #print('Cleanup ', temp_folder)
 
         ############
         # templates

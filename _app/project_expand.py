@@ -5,7 +5,6 @@ from app_settings import AppSettings
 from configuration_file import ConfigurationDict
 from template_file import TemplateFile
 
-
 class ProjectExpand(Step):
     def __init__(self):
         super().__init__()
@@ -13,9 +12,8 @@ class ProjectExpand(Step):
         self.description = [
             'Create missing configuration files ',
             'Create missing template files',
-            'Overwrites the existing template'
+            'Overwrites any existing templates'
         ]
-
 
     def process(self):
         super().process()
@@ -65,7 +63,7 @@ class ProjectExpand(Step):
         for tmpl_name in file_list:
             parts = tmpl_name.split('.')
             if len(parts) == 4:
-                #print('tmpl', tmpl_name)
+                #print('move tmpl', tmpl_name)
                 tmplFile = TemplateFile(prj_tmpl_folder, tmpl_name)\
                     .read()\
                     .copy(prj_expand_folder, tmpl_name)
@@ -104,7 +102,7 @@ class ProjectExpand(Step):
                      'template-actual': self.appSettings.to_tmpl(conf_name)}
 
             files.append(stuff)
-            print('stuff',stuff)
+            #print('stuff',stuff)
         print('files', len(files))
         for stuff in files:
             #print('stuff', stuff)

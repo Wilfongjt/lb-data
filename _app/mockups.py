@@ -1,3 +1,4 @@
+'''
 from pathlib import Path
 from template_file import TemplateFile
 # file: authenticator.role.pg.tmpl
@@ -587,3 +588,4 @@ def main():
  
 if __name__ == "__main__":
     main()
+'''

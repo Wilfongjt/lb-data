@@ -1,4 +1,4 @@
-
+'''
 from app_settings import AppSettingsTest
 from step import Step
 from util import Util
@@ -90,3 +90,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''

@@ -212,11 +212,11 @@ class TemplateMockups():
         os.environ['LB-TESTING'] = '1'
         appSettings = AppSettingsTest().createFolders()
         filelist = Util().getFileList(appSettings.getResourceFolder('templates'))
-        print('filelist', filelist)
+        #print('filelist', filelist)
         folder = '{}/..LyttleBit/testing/projects/example-dev/templates'.format(appSettings.getHomeFolder())
 
         for fn in filelist:
-            print('filename ', fn)
+            #print('filename ', fn)
             if '.DS_Store' not in fn:
                 TemplateFileMock(appSettings.getResourceFolder('templates'), fn) \
                     .mockup()

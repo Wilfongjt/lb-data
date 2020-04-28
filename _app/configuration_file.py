@@ -31,7 +31,7 @@ class ConfigurationDict(FileAsDict):
         self['db-prefix'] = self.appSettings.lbdb_prefix or 'NA'
         self['db-api-table-type'] = self.appSettings.lbdb_type or 'NA'
         self['db-api-table-type-abbr'] = self.appSettings.lbdb_type_abbr or 'NA'
-        self['app-name'] = self.appSettings.lbproject_name
+        self['app-name'] = self.appSettings.lb_project['name']
         # collect env vars
         '''
         for v in os.environ:

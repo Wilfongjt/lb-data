@@ -1,13 +1,11 @@
+
+'''
 from configuration_file import ConfigurationDictFileDatabaseMock, ConfigurationDictFileTableMock
 from template_file import TemplateFile, TemplateFileCreateTableMock, TemplateFileCreateDatabaseMock,TemplateFileTableAPIInsertMock
 from util import Util
 from pathlib import Path
 from copy_file import CopyFile
 
-'''
-output: /_app/mockups.py
-
-'''
 
 def main():
     # temp_folder = '{}/'.format(str(Path.home()), )
@@ -25,7 +23,7 @@ def main():
     file_list = Util().getFileList(source_folder, '.tmpl')
     file_list.sort()
     class_list = []
-    print('file_list', file_list)
+    #print('file_list', file_list)
 
     mockups_file_name = 'mockups.py'
     Util().deleteFile(class_folder, mockups_file_name)
@@ -79,3 +77,4 @@ def main():
 if __name__ == "__main__":
     main()
 
+'''

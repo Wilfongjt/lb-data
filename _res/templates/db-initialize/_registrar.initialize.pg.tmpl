@@ -1,5 +1,6 @@
 \c [[db-prefix]]_db
-
+--select [[db-prefix]]_schema.credential(current_setting('app.lb_register_guest')::jsonb);
+/*
 INSERT INTO reg_schema.register(
     reg_app_name,
     reg_version
@@ -11,9 +12,10 @@ INSERT INTO reg_schema.register(
 INSERT INTO [[db-prefix]]_schema.credentials(
     crd_email,
     crd_password,
-    crd_user
+    crd_row
 ) VALUES (
     'smithj@gmail.com',
     's1S!ssss',
     '{"username":"smithj@gmail.com", "roles": ["editor"]}'::jsonb
 );
+*/

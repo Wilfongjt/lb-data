@@ -1,0 +1,18 @@
+\c [[db-prefix]]_db
+-- insert a test user
+select [[db-prefix]]_schema.credential(
+	format('{"username":"%s", "password":"%s"}'::TEXT,
+			current_setting('app.lb_register_testuser')::jsonb->>'username',
+			current_setting('app.lb_register_testuser')::jsonb->>'password'
+		  )::JSONB
+
+);
+--select [[db-prefix]]_schema.credential('"username":(current_setting('app.lb_register_testuser')::jsonb-'password')::jsonb - 'role');
+
+--select [[db-prefix]]_schema.credential(current_setting('app.lb_register_guest')::jsonb);
+--select [[db-prefix]]_schema.credential(current_setting('app.lb_register_jwt')::jsonb);
+--select [[db-prefix]]_schema.credential(current_setting('app.lb_register_editor')::jsonb);
+--select [[db-prefix]]_schema.credential(current_setting('app.lb_register_registrant')::jsonb);
+--select [[db-prefix]]_schema.credential(current_setting('app.lb_register_registrar')::jsonb);
+
+

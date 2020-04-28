@@ -127,7 +127,7 @@ class Util():
             lines = file.readlines()
             for ln in lines:
                 if not ln.startswith('#'):
-                    print('lb', ln)
+                    #print('lb', ln)
                     #print('split', ln.split('='))
                     ln = ln.split('=')
                     if len(ln) > 2:
