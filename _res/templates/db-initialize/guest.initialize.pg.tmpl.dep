@@ -1,5 +1,0 @@
-/*
-\c [[LB_DB_PREFIX]]_db
--- select [[LB_DB_PREFIX]]_schema.register(current_setting('app.lb_register_anonymous')::jsonb);
-*/
-
