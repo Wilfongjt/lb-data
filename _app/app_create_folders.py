@@ -110,8 +110,8 @@ def main():
     assert (Util().folder_exists(step.get('shared-folder')))
     assert (Util().folder_exists(step.get('projects-folder')))
 
-    print('data', step.getData())
-    appSettings.removeFolders()
+    #print('data', step.getData())
+    #appSettings.removeFolders()
     os.environ['LB-TESTING'] = '0'
 
 if __name__ == "__main__":

@@ -45,9 +45,9 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=${LB_POSTGRES_PASSWORD}
-      - POSTGRES_DB=[[db-prefix]]_db
-      - DB_ANON_ROLE=guest
-      - DB_SCHEMA=[[db-prefix]]_schema
+      - POSTGRES_DB=[[LB_DB_PREFIX]]_db
+      - DB_ANON_ROLE=anonymous
+      - DB_SCHEMA=[[LB_DB_PREFIX]]_schema
       - DB_NAME=postgres
       - DB_USER=postgres
       - DB_PASS="${LB_DB_PASS}"
@@ -55,13 +55,13 @@ services:
     volumes:
       # anything in initdb directory is created in the database
       # see "How to extend this image" section at https://hub.docker.com/r/_/postgres/
-      #      - "./[[db-prefix]]-db/pg-database/db-scripts/compiled-scripts:/docker-entrypoint-initdb.d"
+      #      - "./[[LB_DB_PREFIX]]-db/pg-database/db-scripts/compiled-scripts:/docker-entrypoint-initdb.d"
 
       - "./db/sql:/docker-entrypoint-initdb.d"
 
       # Uncomment this if you want to persist the data.
 
-      - "~/.data/[[db-prefix]]_db/pgdata:/var/lib/postgresql/data"
+      - "~/.data/[[LB_DB_PREFIX]]_db/pgdata:/var/lib/postgresql/data"
 
     networks:
       - postgrest-backend
@@ -83,9 +83,9 @@ services:
       # The standard connection URI format, documented at
       # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
 
-      PGRST_DB_URI: postgres://postgres:[[LB_POSTGRES_PASSWORD]]@db:5432/[[db-prefix]]_db
-      PGRST_DB_SCHEMA: [[db-prefix]]_schema
-      PGRST_DB_ANON_ROLE: guest
+      PGRST_DB_URI: postgres://postgres:[[LB_POSTGRES_PASSWORD]]@db:5432/[[LB_DB_PREFIX]]_db
+      PGRST_DB_SCHEMA: [[LB_DB_PREFIX]]_schema
+      PGRST_DB_ANON_ROLE: anonymous
 
     depends_on:
       - db

@@ -115,6 +115,6 @@ def main():
     os.environ['LB-TESTING'] = '1'
 
     ProcessVerifyOutput().run()
-
+    os.environ['LB-TESTING'] = '0'
 if __name__ == "__main__":
     main()

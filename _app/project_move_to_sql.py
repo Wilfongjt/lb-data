@@ -14,13 +14,22 @@ class ProjectMoveToSQL(Step):
 
         self.description = ['Rename any file ending in .merged to .sql ',
                             'Control execution of sql by adding numeric prefix',
-                            'Overwrites template file with sql file'
+                            'Overwrites template file with sql file',
+                            'Removes files from expanded folder'
                             ]
+        #  'table-api-test': {'prefix': '99', 'ext': 'sql'},
         self.type_map = {
             'database': {'prefix': '01', 'ext': 'sql'},
             'role': {'prefix': '03', 'ext': 'sql'},
+            'validate-function': {'prefix': '04', 'ext': 'sql'},
             'table': {'prefix': '05', 'ext': 'sql'},
             'function': {'prefix': '07', 'ext': 'sql'},
+
+            'table-api-upsert': {'prefix': '09', 'ext': 'sql'},
+            'interface-upsert': {'prefix': '09', 'ext': 'sql'},
+            'interface-select': {'prefix': '09', 'ext': 'sql'},
+            'interface-test': {'prefix': '99', 'ext': 'sql'},
+
             'table-api-insert': {'prefix': '09', 'ext': 'sql'},
             'table-api-update': {'prefix': '09', 'ext': 'sql'},
             'table-api-select': {'prefix': '09', 'ext': 'sql'},
@@ -45,7 +54,7 @@ class ProjectMoveToSQL(Step):
         super().process()
         #temp folder cleanup
         self.getData()
-        self.log('getData {}'.format(self.getData()))
+        #self.log('getData {}'.format(self.getData()))
 
         mrgd_folder = self.appSettings.getFolder('merged-folder')
         prj_folder = self.appSettings.getFolder('project-folder')
@@ -58,12 +67,12 @@ class ProjectMoveToSQL(Step):
 
         script_folder = self.appSettings.getFolder('script-folder')
 
-        self.log('{}    {}'.format('env-file', self.appSettings.getFolder('env-file')))
-        self.log('{} {}'.format('code-folder', code_folder))
-        self.log('{}  {}'.format('prj_folder', prj_folder))
-        self.log('{}   {}'.format('db_folder', db_folder))
-        self.log('{}  {}'.format('sql-folder', sql_folder))
-        self.log('{}  {}'.format('script-folder', script_folder))
+        self.log('  - {}    {}'.format('env-file', self.appSettings.getFolder('env-file')))
+        self.log('  - {} {}'.format('code-folder', code_folder))
+        self.log('  - {}  {}'.format('prj_folder', prj_folder))
+        self.log('  - {}   {}'.format('db_folder', db_folder))
+        self.log('  - {}  {}'.format('sql-folder', sql_folder))
+        self.log('  - {}  {}'.format('script-folder', script_folder))
         # make folder in code project
         if not Util().folder_exists(sql_folder):
             #print('sql_folder',sql_folder)
@@ -76,11 +85,11 @@ class ProjectMoveToSQL(Step):
         # file_list = Util().getFileList(mrgd_folder, ext='tmpl-compiled-merged')
         file_list = Util().getFileList(mrgd_folder, ext='tmpl')
 
-        print('file_list', len(file_list),file_list)
+        #print('file_list', len(file_list),file_list)
 
         for fn in file_list:
             #Util().deleteFile(temp_folder, fn)
-
+            #print('ProjectMoveToSQL fn', fn)
             fromname = '{}/{}'.format(mrgd_folder, fn)
             toname = '{}/sql/{}.{}'.format(mrgd_folder,
                                        self.getNameOrder(fn),
@@ -135,16 +144,22 @@ class ProjectMoveToSQL(Step):
 
             os.rename(fromname, toname)
             if 'script' in fn:
-                print('set permissions {}'.format(toname))
+                #print('set permissions {}'.format(toname))
                 #                          -rw-r--r--  1
                 os.system('ls -l {}'.format(toname))
                 os.chmod(toname, 0o755) # -rwxr-xr-x
                 os.system('ls -l {}'.format(toname))
-
+        #self.cleanup()
         return self
-
-    #def delete(self, folder, filename):
-
+    '''
+    def cleanup(self):
+        expanded_folder = self.appSettings.getFolder('expanded-folder')
+        filelist = Util().getFolderList(expanded_folder)
+        for f in filelist:
+            print('file', f)
+            #Util().deleteFolder(expanded_folder)
+        return self
+    '''
 def main():
     from app_settings import AppSettingsTest
     #from project_expand import ProjectExpand
@@ -177,17 +192,19 @@ def main():
         .add(ProjectMerge())\
         .add(step)\
         .run()
-
+    '''
+    
+    '''
     #print('* {}'.format(step.getClassName()))
     #print('  - {}'.format(step.getDescription()))
 
     mrgd_folder = appSettings.getFolder('merged-folder')
     file_list = Util().getFileList(mrgd_folder, ext='.sql')
 
-    print('merge folder', mrgd_folder)
-    print('file list', file_list)
+    #print('merge folder', mrgd_folder)
+    #print('file list', file_list)
     for fn in file_list:
-        print('    - rename ', fn)
+        #print('    - rename ', fn)
         assert(Util().file_exists(mrgd_folder, fn))
 
     # appSettings.removeFolders()

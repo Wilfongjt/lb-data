@@ -43,6 +43,7 @@ def main():
     appSettings.createAppFolders()
 
     step = AppInitialize().run()
+    #    shared_folder = '{}/..LyttleBit/testing/shared'.format(appSettings.getHomeFolder()) #'{}/shared'.format(step.getFolder('working-folder'))
 
     shared_folder = '{}/..LyttleBit/testing/shared'.format(appSettings.getHomeFolder()) #'{}/shared'.format(step.getFolder('working-folder'))
     exp_file = 'context.template.list.json'
@@ -51,7 +52,7 @@ def main():
     # did file copy?
     assert(Util().file_exists(shared_folder, exp_file))
 
-    appSettings.removeFolders()
+    #appSettings.removeFolders()
     os.environ['LB-TESTING'] = '0'
 
 if __name__ == "__main__":

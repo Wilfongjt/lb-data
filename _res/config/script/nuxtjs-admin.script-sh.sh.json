@@ -1,4 +1,4 @@
 {
-    "type": "script",
+    "type": "script-sh",
     "nuxtjs-name": "admin"
 }

@@ -69,7 +69,7 @@ def main():
     assert (Util().folder_exists(appSettings.getFolder('merged-folder')))
     assert (Util().folder_exists(appSettings.getFolder('temp-lates-folder')))
 
-    appSettings.removeFolders()
+    #appSettings.removeFolders()
     os.environ['LB-TESTING']='0'
 
 if __name__ == "__main__":

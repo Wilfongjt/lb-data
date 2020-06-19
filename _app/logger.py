@@ -1,8 +1,8 @@
-from file import FileAsList
+from file import ListFile
 #from copy_file import CopyFile
 from app_settings import AppSettingsTest
 
-class Logger(FileAsList):
+class Logger(ListFile):
     def __init__(self, folder_name=None, file_name='logger.log'):
         super().__init__(folder_name, file_name)
         if self.getFolderName() == None:
@@ -19,11 +19,14 @@ class Logger(FileAsList):
         return self
 
 def main():
+    import os
     from util import Util
+    os.environ['LB-TESTING'] = '1'
     AppSettingsTest().createFolders()
     print('* Logger')
     #folder_name = CopyFile().getTempFolderName()
     file_name = 'logger.log'
+    '''
     log = Logger()\
         .setEcho(False) # write to screen too
     log.log('hi').log('ho').log('hi')
@@ -50,6 +53,8 @@ def main():
     print('  - deleted {}'.format(not Util().file_exists(log.getFolderName(), expected)))
     assert(not Util().file_exists(log.getFolderName(), expected))
 
-    AppSettingsTest().removeFolders()
+    #AppSettingsTest().removeFolders()
+    '''
+    os.environ['LB-TESTING'] = '0'
 if __name__ == "__main__":
     main()

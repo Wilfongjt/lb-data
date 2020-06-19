@@ -2,7 +2,8 @@ from pathlib import Path
 from step import Step
 from util import Util
 from configuration_file import ConfigurationDict
-from template_file import TemplateFile
+#from template_file import TemplateFile
+from templates import Template
 #from script_file import ScriptFile
 #from helper_temporary_file import HelperTemporaryFile
 #from helper_template_merge import HelperTemplateMerge
@@ -14,8 +15,10 @@ import os
 # Input  : temp-folder/*.compiled
 # Input  : template-folder/*.tmpl
 # Outputs: merge-folder/*.sql
+'''
 
-class ProjectMerge(Step):
+'''
+class dep_ProjectMerge(Step):
     def __init__(self):
         super().__init__()
         self.description = [
@@ -35,9 +38,8 @@ class ProjectMerge(Step):
         compiled_folder = self.appSettings.getFolder('expanded-folder')
         # GATHER FILE NAMEs
         # output
-        #merge_folder = self.appSettings.getFolder('merged-folder')
+        # merge_folder = self.appSettings.getFolder('merged-folder')
         merge_folder = self.appSettings.getFolder('expanded-folder')
-
 
         # get list of files to process
         file_name_list  = Util().getFileList(conf_folder, ext='.json') # compiled files
@@ -76,13 +78,16 @@ class ProjectMerge(Step):
 
         # input
         #print('merge',cmpl_res.getFolder(), cmpl_res.getFileName())
-        cmplFile = TemplateFile(cmpl_res.getFolder(), cmpl_res.getFileName() ).read()
+        #cmplFile = TemplateFile(cmpl_res.getFolder(), cmpl_res.getFileName() ).read()
         confFile = ConfigurationDict(conf_res.getFolder(), conf_res.getFileName()).read()
+        cmplFile = Template(confFile, cmpl_res.getFolder(), cmpl_res.getFileName() )
 
         # output file
-        mrgFile = TemplateFile(mrg_res.getFolder(), mrg_res.getFileName())
-        print('confFile', confFile)
-        print('env',os.environ)
+        #mrgFile = TemplateFile(mrg_res.getFolder(), mrg_res.getFileName())
+        mrgFile = Template(mrg_res.getFolder(), mrg_res.getFileName())
+
+        #print('confFile', confFile)
+        #print('env',os.environ)
         # merge template and configuration
         for line in cmplFile:
             # for each line check for tags and inject replacement value(s)
@@ -96,7 +101,7 @@ class ProjectMerge(Step):
             #print('merge' ,cmplFile.getFileName() )
 
             if '[[' in line:
-                print('dups', line)
+                #print('dups', line)
                 raise Exception('Unresolved tag {} {} {}'.format(line,
                                                                  cmplFile.getFileName(),
                                                                  cmplFile.getFolderName()))
@@ -116,8 +121,8 @@ class ProjectTemplateMergeMock(ProjectTemplateMerge):
 def main():
     import os
     from util import Util
+    from test_func import test_table
     from app_settings import AppSettingsTest
-    from mockup_test_data import MockupData
 
     from project_environment import ProjectEnvironment
     from project_create_folders import ProjectCreateFolders
@@ -146,6 +151,10 @@ def main():
     #print('  - {}'.format(step.getDescription()))
 
     filelist = Util().getFileList(appSettings.getFolder('expanded-folder'))
+
+    print('expanded-folder', appSettings.getFolder('expanded-folder'))
+    print('filelist', filelist)
+
     assert( len(filelist) > 0)
     for fn in filelist:
         assert(Util().file_exists(appSettings.getFolder('expanded-folder'),fn))
@@ -155,7 +164,7 @@ def main():
 
         assert(len(tFile)>0)
         for ln in tFile:
-            print('ln', ln)
+            print('ln', ln, fn)
             assert( '[[' not in ln)
         print('    - merged {}'.format(fn))
 

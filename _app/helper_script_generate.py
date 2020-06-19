@@ -2,6 +2,7 @@
 #from template_file import TemplateFile
 #from configuration_generate import ConfigurationGenerate
 #from script_file import Script File
+'''
 from helper import Helper
 from app_settings import AppSettings
 
@@ -35,10 +36,10 @@ class HelperScriptGenerate(Helper):
 
 def main():
     #from __classes__.setup import Setup
-    from copy_file import CopyFile
+    #from copy_file import CopyFile
     from script_file import ScriptFile
-    from util import Util
-    from step import StepMock
+    #from util import Util
+    #from step import StepMock
 
     #step = StepMock()
     # setup
@@ -67,3 +68,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''

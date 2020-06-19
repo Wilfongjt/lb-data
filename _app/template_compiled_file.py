@@ -39,15 +39,16 @@ class Appender():
         if self.context == None:
             self.context = ContextDict().read()
         return self.context
-
+    '''
     def templatize(self, key_value_dict, tmpl_str):
+        print('templateize 2')
         # case 1: key_value_dict is {"name": "id", "context":"id"} primary key
         # case 2: key_value_dict is {"name": "role", "context":"fk"} foreign key
         for key_ in key_value_dict:
             v = key_value_dict['name']
             tmpl_str = tmpl_str.replace('[[{}]]'.format(key_), v)
         return tmpl_str
-
+    '''
 class AppendFields(Appender):
     '''
     append stuf during read
@@ -62,13 +63,13 @@ class AppendFields(Appender):
     def append(self, line):
 
         #at this point, we are loading the template
-        #[[fields]] has been found in template line
-        #assume [[fields]] is alone on its own line
-        #skip template line, replace with sql column defintions derived from config."fields" list
+        #[[tbl-fields]] has been found in template line
+        #assume [[tbl-fields]] is alone on its own line
+        #skip template line, replace with sql column defintions derived from config."tbl-fields" list
         #add each column definition back to the template list as a template
 
         i = 1
-        tag = 'fields'
+        tag = 'tbl-fields'
         sz = len(self.configFile[tag])
 
         # add fields to list
@@ -100,8 +101,8 @@ class AppendExtensions(Appender):
 
     def append(self, line):
         # no delemiters
-        # assume [[extentions]] is on single line
-        tag = 'extensions'
+        # assume [[extensions]] is on single line
+        tag = 'db-extensions'
         for e in self.configFile[tag]:  # get template from list
             # ln = '{}\n'.format(self.getDictionary().getTemplateFile(e))
             ln = '{}\n'.format(self.getContext()[e])  # get context.template.list key
@@ -156,15 +157,15 @@ class dep_TemplateCompiledFile(TemplateFile):
         elif '[[insert-parameters]]' in line: # db-api-table-table.pg.tmpl
             print('    - insert-parameters found')
             # self.loadInsertParameters('insert-parameters', line)  # inject parameters into line
-        elif '[[extensions]]' in line:
-            #print('    - extensions found')
+        elif '[[db-extensions]]' in line:
+            #print('    - db-extensions found')
             AppendExtensions(self, self.getConfig()).append(line)
-            # self.loadExtensions('extensions')  # replace line with extensions
-        elif '[[fields]]' in line: # db-api-table-table.pg.tmpl
+            # self.loadExtensions('db-extensions')  # replace line with db-extensions
+        elif '[[tbl-fields]]' in line: # db-api-table-table.pg.tmpl
             #print('    - fields found')
             AppendFields(self, self.getConfig()).append(line)
             # the current line is replaced
-            # self.loadFields('fields')  # replace line with fields
+            # self.loadFields('tbl-fields')  # replace line with fields
         else:
             super().append(line)
 
@@ -209,7 +210,7 @@ def main():
     print('  - tmplCompiledFile',tmplCompiledFile)
     assert(len(tmplCompiledFile)>0) # loaded temp file
     assert(len(tmplCompiledFile.getConfig()) > 0) # loaded config file
-    assert('[[fields]]' not in tmplCompiledFile)
+    assert('[[tbl-fields]]' not in tmplCompiledFile)
     assert('  [[tbl-prefix]]_id SERIAL PRIMARY KEY,\n' in tmplCompiledFile)
 
     #############################
@@ -225,14 +226,14 @@ def main():
     print('  - tmplCompiledFile', tmplCompiledFile)
     assert (len(tmplCompiledFile) > 0)  # loaded temp file
     assert (len(tmplCompiledFile.getConfig()) > 0)  # loaded config file
-    assert ('[[extensions]]' not in tmplCompiledFile)
+    assert ('[[db-extensions]]' not in tmplCompiledFile)
     assert('create extension IF NOT EXISTS pgcrypto;\n' in tmplCompiledFile)
 
     #############################
     '''
     print('\n############\n')
     print('* TemplateCompiledFile with AppendParameters')
-    tmplResourceName = ResourceName(appSettings.getFolder('temp-lates-folder'), 'db-api-table-table-api-insert.pg.tmpl')
+    tmplResourceName = ResourceName(appSettings.getFolder('temp-lates-folder'), 'db-api-table-dep.table-api-insert.pg.tmpl.dep')
     confResourceName = ResourceName(appSettings.getFolder('con-fig-folder'), 'mock.db-api-table-table.pg.json')
     print('  - tmplResourceName', tmplResourceName.getResourceName())
     print('  - confResourceName', confResourceName.getResourceName())

@@ -1,33 +1,138 @@
 {
-    "active": "[[tbl-prefix]]_active BOOLEAN NOT NULL DEFAULT true",
+    "context": {
+        "key-pattern-1": "<key-value>",
+        "key-pattern-2": "<context>-<type>",
+        "active-BOOLEAN": "[[tbl-prefix]]_active BOOLEAN NOT NULL DEFAULT true",
+        "created-TIMESTAMP": "[[tbl-prefix]]_created timestamp without time zone DEFAULT CURRENT_TIMESTAMP",
+        "email": "[[tbl-prefix]]_[[name]] varchar(256) check ( [[tbl-prefix]]_[[name]] ~* '^.+@.+\\..+$' )",
+        "fk": "[[tbl-prefix]]_[[name]] integer NOT NULL",
+        "pk": "[[tbl-prefix]]_[[name]] SERIAL PRIMARY KEY",
+        "pk-TEXT": "[[tbl-prefix]]_[[name]] TEXT PRIMARY KEY DEFAULT uuid_generate_v4 ()",
+        "uuid": "[[tbl-prefix]]_[[name]] uuid DEFAULT uuid_generate_v4 ()",
+        "pk-uuid": "[[tbl-prefix]]_[[name]] uuid PRIMARY KEY DEFAULT uuid_generate_v4 ()",
+        "pk-UUID": "[[tbl-prefix]]_[[name]] uuid PRIMARY KEY DEFAULT uuid_generate_v4 ()",
+        "fk-uuid": "[[tbl-prefix]]_[[name]] uuid",
+        "idx-pk": "CREATE UNIQUE INDEX IF NOT EXISTS [[{tbl-name}]]_[[tbl-prefix]]_id_pkey ON [[tbl-prefix]]_schema.[[{tbl-name}]]([[tbl-prefix]]_id int4_ops);",
+        "latitude": "[[tbl-prefix]]_[[name]] numeric(16,14) NOT NULL",
+        "longitude": "[[tbl-prefix]]_[[name]] numeric(17,14) NOT NULL",
+        "name": "[[tbl-prefix]]_[[name]] varchar(256) not null check (length([[tbl-prefix]]_[[name]]) < 256)",
+        "password-TEXT": "[[tbl-prefix]]_[[name]] varchar(256) not null",
+        "pgcrypto": "create extension IF NOT EXISTS pgcrypto;",
+        "pgtap": "CREATE EXTENSION IF NOT EXISTS pgtap;",
+        "pgjwt": "CREATE EXTENSION IF NOT EXISTS pgjwt;",
+        "uuid-ossp": "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";",
+        "retention": "[[tbl-prefix]]_retention jsonb not null",
+        "user": "[[tbl-prefix]]_[[name]] jsonb not null",
+        "form-JSONB": "[[tbl-prefix]]_[[name]] jsonb not null",
+        "roles": "",
+        "token": "[[tbl-prefix]]_token varchar(1000) check (length([[tbl-prefix]]_token) <= 1000)",
+        "type": "[[tbl-prefix]]_[[name]] varchar(256) not null check (length([[tbl-prefix]]_[[name]]) < 256)",
+        "updated-TIMESTAMP": "[[tbl-prefix]]_updated timestamp without time zone DEFAULT CURRENT_TIMESTAMP",
+        "version": "[[tbl-prefix]]_version varchar(25) not null check (length([[tbl-prefix]]_version) < 25) DEFAULT '1.0.0'",
+        "type-TEXT": "[[tbl-prefix]]_[[name]] varchar(256) not null check (length([[tbl-prefix]]_[[name]]) < 256)"
+    },
 
-    "created": "[[tbl-prefix]]_created timestamp without time zone DEFAULT CURRENT_TIMESTAMP",
+    "search-context": {
+        "key-pattern-1": "<key-value>",
+        "key-pattern-2": "<context>-<type>",
+        "confirm-token-username": "[[tbl-prefix]]_[[name]]=[[LB_DB_PREFIX]]_schema.get_username(_token)::TEXT",
+        "confirm-id": "[[tbl-prefix]]_[[name]]= cast(_json::jsonb ->> '[[name]]' as integer)",
+        "uuid": "[[tbl-prefix]]_[[name]]= cast(_json::jsonb ->> '[[name]]' as UUID)",
+        "pk-UUID": "[[tbl-prefix]]_[[name]]= cast(_json::jsonb ->> '[[name]]' as UUID)",
+        "pk-id": "[[tbl-prefix]]_[[name]]= cast(_json::jsonb ->> '[[name]]' as integer)",
+        "type-TEXT": "[[tbl-prefix]]_[[name]]= cast(_json::jsonb ->> '[[name]]' as TEXT)"
 
-    "email": "[[tbl-prefix]]_[[name]] varchar(256) check ( [[tbl-prefix]]_email ~* '^.+@.+\\..+$' )",
+    },
 
-    "fk": "[[tbl-prefix]]_[[name]] integer NOT NULL",
+    "data-context": {
+        "app_id": "e53229aa-d09c-4cec-b566-ea553ae8078d",
+        "app_id-good": "e53229aa-d09c-4cec-b566-ea553ae8078d",
+        "app_id-bad": "a",
 
-    "pk": "[[tbl-prefix]]_[[name]] SERIAL PRIMARY KEY",
+        "pk": "1",
+        "pk-good": "1",
+        "pk-bad": "a",
 
-    "idx-pk":"CREATE UNIQUE INDEX IF NOT EXISTS [[{tbl-name}]]_[[tbl-prefix]]_id_pkey ON [[tbl-prefix]]_schema.[[{tbl-name}]]([[tbl-prefix]]_id int4_ops);",
+        "id": {"good":"e53229aa-d09c-4cec-b566-ea553ae8078d", "bad": "a"},
+        "id-good": "e53229aa-d09c-4cec-b566-ea553ae8078d",
+        "id-bad": "a",
 
-    "latitude": "[[tbl-prefix]]_[[name]] numeric(16,14) NOT NULL",
-    "longitude": "[[tbl-prefix]]_[[name]] numeric(17,14) NOT NULL",
+        "uuid": {"good":"e53229aa-d09c-4cec-b566-ea553ae8078d", "bad": "a"},
+        "uuid-good": "e53229aa-d09c-4cec-b566-ea553ae8078d",
+        "uuid-bad": "a",
 
-    "name": "[[tbl-prefix]]_[[name]] varchar(256) not null check (length([[tbl-prefix]]_[[name]]) < 256)",
+        "uuid-UUID": {"good":"e53229aa-d09c-4cec-b566-ea553ae8078d", "bad": "a"},
 
-    "password": "[[tbl-prefix]]_[[name]] varchar(512) not null check (length([[tbl-prefix]]_password) < 512)",
-    "pgcrypto": "create extension IF NOT EXISTS pgcrypto;",
-    "pgtap": "CREATE EXTENSION IF NOT EXISTS pgtap;",
-    "pgjwt": "CREATE EXTENSION IF NOT EXISTS pgjwt;",
-    "retention": "[[tbl-prefix]]_retention jsonb not null",
+        "pk-UUID": {"good":"e53229aa-d09c-4cec-b566-ea553ae8078d", "bad": "a"},
 
-    "dep-role-editor": "[[tbl-prefix]]_role varchar(25) DEFAULT 'editor'",
-    "dep-role": "[[tbl-prefix]]_[[name]] varchar(256) not null check (length([[tbl-prefix]]_role) <= 256)",
-    "dep-roles": "[[tbl-prefix]]_roles jsonb not null",
-    "user": "[[tbl-prefix]]_user jsonb not null",
+        "username": "abc@xyx.com",
+        "username-good": "abc@xyx.com",
+        "username-bad": "abs#xyx.com",
 
-    "token": "[[tbl-prefix]]_token varchar(1000) check (length([[tbl-prefix]]_token) <= 1000)",
-    "updated": "[[tbl-prefix]]_updated timestamp without time zone DEFAULT CURRENT_TIMESTAMP",
-    "version": "[[tbl-prefix]]_version varchar(25) not null check (length([[tbl-prefix]]_version) < 25) DEFAULT '1.0.0'"
+        "email": "abc@xyx.com",
+        "email-good": "abc@xyx.com",
+        "email-bad": "abs#xyx.com",
+
+        "email-TEXT": {"good":"abc@xyx.com", "bad": "a"},
+
+        "password": "t1T!tttt",
+        "password-good": "t1T!tttt",
+        "password-bad": "password",
+
+        "password-TEXT": {"good":"t1T!tttt", "bad": "a"},
+
+        "form": {"good":{}, "bad": "a"},
+        "form-good": {},
+        "form-bad": [],
+
+        "form-JSONB": {"good":{}, "bad": "a"},
+
+        "created": {"good":"2020-04-30 22:34:25.919433", "bad": "a"},
+        "created-good": "2020-04-30 22:34:25.919433",
+        "created-bad": "2020-04-30 22:34:25.919433",
+
+        "created-TIMESTAMP": {"good":"2020-04-30 22:34:25.919433", "bad": "a"},
+
+        "updated": "2020-04-30 22:34:25.919433",
+        "updated-good": "2020-04-30 22:34:25.919433",
+        "updated-bad": "2020-04-30 22:34:25.919433",
+
+        "updated-TIMESTAMP": {"good":"2020-04-30 22:34:25.919433", "bad": "a"},
+
+        "active": "true",
+        "active-good": "true",
+        "active-bad":  "true",
+
+        "name": "John Smith",
+        "name-good":  "John Smith",
+        "name-bad": "John Smith",
+
+        "app-name": "my-app",
+        "app-name-good": "my-app",
+        "app-name-bad": "my-app",
+
+        "app-type": "app",
+        "app-type-good":  "app",
+        "app-type-bad":  "app",
+
+        "user-type": "user",
+        "user-type-good": "user",
+        "user-type-bad": "user",
+
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        "token-good": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        "token-bad": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+
+        "token-TEXT": {"good":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", "bad": "a"},
+
+        "type": "app",
+        "type-good": "app",
+        "type-bad": "xxx",
+
+        "type-TEXT": {"good":"app", "bad": "a"},
+
+        "version": {"good":"1.0.0", "bad": "a"},
+        "version-good": "1.0.0",
+        "version-bad": "a.b.c"
+    }
 }

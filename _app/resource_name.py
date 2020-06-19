@@ -1,4 +1,4 @@
-
+import os
 class ResourceName():
     '''
     stores a folder and file names
@@ -11,6 +11,7 @@ class ResourceName():
 
         if file_name == None:
             raise Exception('ResourceName file_name is undefined.')
+        self = '{}/{}'.format(self.getFolder(), self.getFileName())
 
     def getFolder(self):
         return self.folder_name
@@ -21,6 +22,15 @@ class ResourceName():
     def getResourceName(self):
         return '{}/{}'.format(self.getFolder(), self.getFileName())
 
+    def toString(self):
+        return '{}/{}'.format(self.getFolder(), self.getFileName())
+
     def exists(self):
         exists = os.path.isfile(self.getResourceName())
         return exists
+
+def main():
+    assert ResourceName('/data', 'hi.txt').toString() == '/data/hi.txt'
+
+if __name__ == "__main__":
+    main()

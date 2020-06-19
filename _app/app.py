@@ -28,7 +28,7 @@ class App(list):
 
 def main():
     #from helper_script_generate import HelperScript Generate
-
+    os.environ['LB-TESTING'] = '1'
     from app_environment import AppEnvironment
     from app_create_folders import AppCreateFolders
     from app_initialize import AppInitialize
@@ -59,7 +59,7 @@ def main():
     app.append(setup_example_project)
 
     app.run()
-
+    os.environ['LB-TESTING'] = '0'
     #print('end')
 
 if __name__ == "__main__":

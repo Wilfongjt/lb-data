@@ -1,0 +1,91 @@
+\c [[LB_DB_PREFIX]]_db
+-- custom
+-- gen from default tmpl
+CREATE OR REPLACE FUNCTION
+[[LB_DB_PREFIX]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
+AS $$
+  Declare rc jsonb;
+  Declare _cur_row JSONB;
+  Declare _model_user JSONB;
+
+  [[tbl-fields.*:*.Declare _{{name}} {{type}};]]
+
+  BEGIN
+
+    _model_user := current_setting('app.lb_register_[[api-role]]')::jsonb;
+
+    -- figure out which token: app-token or user-token
+    if not([[LB_DB_PREFIX]]_schema.is_valid_token(_token, _model_user ->> 'role')) then
+        return '{"status": "401", "msg":"Unauthorized bad token"}'::JSONB;
+    end if;
+
+    -- INSERT only
+
+    BEGIN
+
+        -- confirm all required attributes are in form
+        if not([[api-form.json:(C)._json ? '{{name}}'. and ]]) then
+           return '{"status":"400","msg":"Bad Request, missing form attribute"}'::JSONB;
+        end if;
+
+        -- make sure type is expected value
+        if not(_json ->> '[[api-form.context:type.{{name}}]]' = '[[api-form.context:type.{{const}}]]') then
+           return '{"status":"400", "msg":"Bad Request, type."}'::JSONB;
+        end if;
+
+        -- extract values needed for wrapper record
+
+        _[[api-form.context:type.{{name}}]] := _json ->> '[[api-form.context:type.{{name}}]]';
+
+        -- never store password in form
+        _[[api-form.context:password.{{name}}]] := _json ->> '[[api-form.context:password.{{name}}]]';
+
+        _[[tbl-fields.context:form.{{name}}]] := _json - '[[api-form.context:password.{{name}}]]';
+
+        -- validate
+        if length(_[[api-form.context:password.{{name}}]]) < 8 then
+            return '{"status":"400", "msg":"Bad Request, validation error"}'::JSONB;
+        end if;
+
+        rc := '{"status":"200", "msg":"OK"}'::JSONB;
+
+        INSERT INTO [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+            ([[tbl-fields.crud:(CF).{{tbl-prefix}}_{{name}}., ]])
+          VALUES
+            ([[tbl-fields.crud:(CF)._{{name}}., ]] );
+
+    EXCEPTION
+        WHEN unique_violation THEN
+            rc := '{"status":"400", "msg":"Bad Request, duplicate error"}'::JSONB;
+        WHEN check_violation then
+            rc := '{"status":"400", "msg":"Bad Request, validation error"}'::JSONB;
+        WHEN others then
+            rc := format('{"status":"500", "msg":"unknown insertion error", "form":%s}',_form)::JSONB;
+    END;
+
+    RETURN rc;
+  END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION
+[[LB_DB_PREFIX]]_schema.[[api-name]](_json JSONB) RETURNS JSONB
+AS $$
+DECLARE _token TEXT;
+DECLARE _jwt TEXT;
+DECLARE _anonymous JSONB;
+BEGIN
+    -- this is an INSERT function special case
+    -- remove password
+    _anonymous := current_setting('app.lb_register_anonymous')::JSONB-'password';
+    -- inject the type attribute
+    _anonymous := _anonymous || '{"type": "[[api-name]]"}'::JSONB;
+    -- get pw from model user
+	_jwt := current_setting('app.lb_register_jwt')::JSONB ->> 'password';
+	-- make the token
+	_token := sign(_anonymous::JSON, _jwt) ;
+	return [[LB_DB_PREFIX]]_schema.[[api-name]](_token, _json);
+END;
+$$ LANGUAGE plpgsql;
+
+[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_DB_PREFIX}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]
+-- END XXXXXXXX

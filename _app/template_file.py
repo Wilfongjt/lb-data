@@ -1,8 +1,9 @@
+"""
 #from __classes__.configuration import Configuration
 #from configuration import Configuration
 #from __classes__.application import Application
 #from application import Application
-from file import FileAsList
+from file import ListFile
 from pathlib import Path
 from util import Util
 
@@ -13,7 +14,7 @@ import os
 from app_settings import AppSettingsTest
 
 
-class TemplateFile(FileAsList):
+class TemplateFile(ListFile):
 
     def __init__(self, foldername=None, filename=None):
         super().__init__(foldername, filename)
@@ -88,7 +89,7 @@ class TemplateFile(FileAsList):
                 #    print('rline', line)
                 self.append(line)
                 # need to read field templates from template_list
-                # need fields from configuration_file ... add func to configureation to pull those... conf.getTemplateFile('fields')
+                # need tbl-fields from configuration_file ... add func to configureation to pull those... conf.getTemplateFile('tbl-fields')
         return self
     '''
     def delete(self):
@@ -192,3 +193,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""
