@@ -1,4 +1,4 @@
-
+"""
 from helper import Helper
 from app_settings import AppSettings
 import json
@@ -25,7 +25,8 @@ class HelperSetClauseFormat(Helper):
         if self.dictionary == None:
             raise Exception('Table Dictionary is not set!')
 
-        set_fields = ['{}_{}=_{}'.format(self.dictionary['tbl-prefix'],f['name'], f['name']) for f in self.dictionary['fields']
+        set_fields = ['{}_{}=_{}'.format(self.dictionary['tbl-prefix'],f['name'], f['name'])
+                      for f in self.dictionary['tbl-fields']
                       if f['context'] != 'pk' and 'crud' in f and 'u' in f['crud']]
 
         #self.lines.append(' and '.join(set_fields))
@@ -33,86 +34,20 @@ class HelperSetClauseFormat(Helper):
 
         return self
 
-def test_table():
-    return {
-        "type": "table",
-        "tbl-name": "test",
-        "tbl-prefix": "tst",
-        "tbl-role": "guest",
-        "api-overwrite": "0",
-        "api-name": "test",
-        "api-table": "test",
-        "api-methods": ["upsert", "select"],
-
-    "fields": [{
-            "name": "id",
-            "context": "pk",
-            "type": "INTEGER",
-            "crud": "r",
-            "json": "ru"
-        },{
-            "name": "username",
-            "context": "email",
-            "type": "TEXT",
-            "crud": "cru",
-            "json": "cru",
-            "search": "confirm-token-username"
-        },{
-            "name": "email",
-            "context": "email",
-            "type": "TEXT",
-            "json": "cru"
-        },{
-            "name": "password",
-            "context": "password",
-            "description": "Passwords are stored in table row, but not in json row",
-            "type": "TEXT",
-            "crud": "cru",
-            "json": ""
-        },{
-            "name": "roles",
-            "context": "roles",
-            "description": "User can have multiple roles",
-            "type": "JSONB",
-            "default": ["registrant"],
-            "crud": "",
-            "json": "cr"
-        },{
-            "name": "row",
-            "context": "row",
-            "description": "json to define role access to multiple apps.",
-            "type": "JSONB",
-            "crud": "cru"
-        },{
-            "name": "created",
-            "context": "created",
-            "type": "TIMESTAMP",
-            "crud": "r"
-        },{
-            "name": "updated",
-            "context": "updated",
-            "type": "TIMESTAMP",
-            "crud": "r"
-        },{
-            "name": "active",
-            "context": "active",
-            "type": "BOOLEAN",
-            "default": "true",
-            "crud": "r",
-            "json": "ru"
-
-        }]
-        ,
-        "db-prefix":"db"
-
-    }
 def main():
     import pprint
+    from test_func import test_table
+    import os
+
+    os.environ['LB-TESTING'] = '1'
     lines = HelperSetClauseFormat().set_dictionary(test_table()).format()
 
     assert (type(lines)==list) # is a list
 
     #pprint.pprint(lines)
     print('\n'.join(lines))
+    os.environ['LB-TESTING'] = '0'
+
 if __name__ == "__main__":
     main()
+"""

@@ -84,7 +84,7 @@ def main():
     assert ('project-folder-name' in step.getData())
     assert ('project-folder' in step.getData())
     #step.log(step.getData(), echo=True)
-    appSettings.removeFolders()
+    #appSettings.removeFolders()
     os.environ['LB-TESTING'] = '0'
 
 if __name__ == "__main__":

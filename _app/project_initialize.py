@@ -3,8 +3,9 @@ from step import Step
 from util import Util
 from app_settings import AppSettings
 from configuration_file import ConfigurationDict
-from template_file import TemplateFile
-
+#from template_file import TemplateFile
+from templates import Template
+from text_file import TextFile
 
 class ProjectInitialize(Step):
     def __init__(self):
@@ -14,7 +15,6 @@ class ProjectInitialize(Step):
             'Copy configuration files from resources config folders ',
             'Copy template files from resource to project template folder'
         ]
-
 
     def process(self):
         super().process()
@@ -36,13 +36,27 @@ class ProjectInitialize(Step):
         #############################################################
         self._copyConfigurationFromCode()
         self._copyTemplatesFromCode()
+        self._copyShareFromCode()
+
+        return self
+
+    def _copyShareFromCode(self):
+        res_share_folder = self.appSettings.getResourceFolder('shared')
+        prj_share_folder = self.appSettings.getFolder('shared-folder')
+        #print('res shared',res_share_folder)
+        #print('prj_config_folder',prj_share_folder)
+        # get list of files from code foldr
+        for fn in Util().getFileList(res_share_folder, '.json'):
+            confFile = ConfigurationDict(res_share_folder, fn) \
+                        .setLB(False)\
+                        .read() \
+                        .copy(prj_share_folder, fn)
 
         return self
 
     def _copyConfigurationFromCode(self):
         res_config_folder = self.appSettings.getResourceFolder('config')
         prj_config_folder = self.appSettings.getFolder('con-fig-folder')
-
 
         # move from resource to project
         folder_list = Util().getFolderList(res_config_folder)
@@ -71,10 +85,14 @@ class ProjectInitialize(Step):
             if '_DEP' not in folder:
                 file_list = Util().getFileList(folder, '.tmpl')
                 for fn in file_list:
+                    '''
                     TemplateFile(folder, fn) \
                         .read() \
                         .copy(prj_tmpl_folder, fn)
-
+                    '''
+                    TextFile(folder, fn)\
+                    .read()\
+                    .copy(prj_tmpl_folder, fn)
 
 def main():
     from app_environment import AppEnvironment
@@ -86,10 +104,9 @@ def main():
     import os
     from app_settings import AppSettingsTest
     #from configuration_file_mocks import ConfigurationDictFileDatabaseMock, ConfigurationDictFileTableMock
-    from template_file_mocks import TemplateMockups, TemplateFileCreateDatabaseMock, TemplateFileCreateTableMock,TemplateFileTableApiUpdateMock,TemplateFileTableApiSelectMock,TemplateFileTableApiInsertMock
-    from mockup_test_data import   MockupData
+    #from template_file_mocks import TemplateMockups, TemplateFileCreateDatabaseMock, TemplateFileCreateTableMock,TemplateFileTableApiUpdateMock,TemplateFileTableApiSelectMock,TemplateFileTableApiInsertMock
     from project_compile import ProjectCompile
-    from project_merge import ProjectMerge
+    #from project_merge import ProjectMerge
 
     os.environ['LB-TESTING'] = '1'
     ######################################################################

@@ -1,4 +1,7 @@
+"""
 from pathlib import Path
+from context_dict import ContextDict
+
 class Helper():
 
     def __init__(self, step=None):
@@ -13,6 +16,14 @@ class Helper():
         self.unquoted_types = ['INTEGER', 'BOOLEAN']
         self.quoted_types = ['TEXT', 'TIMESTAMP']
         self.dictionary = None
+        self.context = None
+
+    def set_dictionary(self, table_dictionary ):
+        if 'interfaces' not in table_dictionary:
+            raise Exception('table dictionary missing interfaces')
+        self.dictionary = table_dictionary
+        return self
+
     '''
     def setData(self, data):
         self.data = data
@@ -22,6 +33,21 @@ class Helper():
         if self.data == None:
             raise Exception('{} data is not set!'.format(self.getClassName()))
         return self.data
+    '''
+    '''
+    def getFieldList(self):
+        if self.field_list == None:
+            self.field_list = FieldList()
+    '''
+    def getContext(self):
+        if self.context == None:
+            self.context = ContextDict().read()
+        return self.context
+    '''
+    def get_context_dictionary(self):
+        if self.context_dictionary == None:
+            self.context_dictionary = ContextDict().read()
+        return self.context_dictionary
     '''
     def getData(self):
         if self.step != None:
@@ -80,3 +106,4 @@ class Helper():
 
     def process(self):
         raise Exception('{} Overload process'.format(self.getClassName()))
+"""

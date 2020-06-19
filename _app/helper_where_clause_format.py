@@ -1,9 +1,11 @@
-
+'''
 from helper import Helper
 from app_settings import AppSettings
 import json
-from context_dict import ContextDict
+from context_dict import ContextDict, ContextKey
 from templatize import Templatize
+from list_fields import FieldList
+from pprint import pprint
 # [[where-clause]]
 class HelperWhereClauseFormat(Helper):
     def __init__(self, step=None):
@@ -14,6 +16,9 @@ class HelperWhereClauseFormat(Helper):
         self.dictionary = None
         self.lines=[]
         self.context_dictionary = None
+
+    def search_context_key(self, field):
+        return '{}-{}'.format(field['context'], field['type'])
 
     def get_context_dictionary(self):
         if self.context_dictionary == None:
@@ -29,12 +34,17 @@ class HelperWhereClauseFormat(Helper):
         self.process()
         return self.lines
 
-    def get_template(self, key):
+    def get_template(self, contextKey):
         # the key might be code
-        rc = self.get_context_dictionary().getTemplate(key)
+        #rc = self.get_context_dictionary().getTemplateList(key)
+        #print('get_context_dictionary()')
+        #print('contextKey', contextKey)
+        #pprint(self.get_context_dictionary())
+        rc = self.get_context_dictionary().get(contextKey)
 
         if rc == None: # key might be code so return it if not found
-            return key
+            return 'context-key {} {} not found!'.format(contextKey['name'], contextKey['key'])
+
         return rc
 
     #def template(self, tmpl, key_pairs):
@@ -44,8 +54,11 @@ class HelperWhereClauseFormat(Helper):
         if self.dictionary == None:
             raise Exception('Table Dictionary is not set!')
         #template = Templatize().set_dictionary(f).templatize(self.get_template(f['search']))
-        #search_clauses = [self.get_template(f['search']) for f in self.dictionary['fields'] if 'search' in f]
-        search_clauses = [Templatize().set_dictionary(f).templatize(self.get_template(f['search'])) for f in self.dictionary['fields'] if 'search' in f]
+        #search_clauses = [self.get_template(f['search']) for f in self.dictionary['tbl-fields'] if 'search' in f]
+        search_clauses = [Templatize().set_dictionary(f).templatize(self.get_template(ContextKey('search-context',f)))
+                          for f in FieldList(self.dictionary, ['I']) ]
+
+
         #print('search_clauses',search_clauses)
         #self.lines.append(' and '.join(search_clauses))
         self.lines.append('            {}'.format(' and '.join(search_clauses)))
@@ -54,90 +67,24 @@ class HelperWhereClauseFormat(Helper):
         self.lines.append('            ;')
         return self
 
-def test_table():
-    return {
-        "type": "table",
-        "tbl-name": "test",
-        "tbl-prefix": "tst",
-        "tbl-role": "guest",
-        "api-overwrite": "0",
-        "api-name": "test",
-        "api-table": "test",
-        "api-methods": ["upsert", "select"],
-
-    "fields": [{
-            "name": "id",
-            "context": "pk",
-            "type": "INTEGER",
-            "crud": "r",
-            "json": "ru"
-        },{
-            "name": "username",
-            "context": "email",
-            "type": "TEXT",
-            "crud": "cru",
-            "json": "cru",
-            "search": "confirm-token-username"
-        },{
-            "name": "email",
-            "context": "email",
-            "type": "TEXT",
-            "json": "cru"
-        },{
-            "name": "password",
-            "context": "password",
-            "description": "Passwords are stored in table row, but not in json row",
-            "type": "TEXT",
-            "crud": "cru",
-            "json": ""
-        },{
-            "name": "roles",
-            "context": "roles",
-            "description": "User can have multiple roles",
-            "type": "JSONB",
-            "default": ["registrant"],
-            "crud": "",
-            "json": "cr"
-        },{
-            "name": "row",
-            "context": "row",
-            "description": "json to define role access to multiple apps.",
-            "type": "JSONB",
-            "crud": "cru"
-        },{
-            "name": "created",
-            "context": "created",
-            "type": "TIMESTAMP",
-            "crud": "r"
-        },{
-            "name": "updated",
-            "context": "updated",
-            "type": "TIMESTAMP",
-            "crud": "r"
-        },{
-            "name": "active",
-            "context": "active",
-            "type": "BOOLEAN",
-            "default": "true",
-            "crud": "r",
-            "json": "ru"
-
-        }]
-        ,
-        "db-prefix":"db"
-
-    }
 def main():
     import pprint
     import os
+    from test_func import test_table
 
     os.environ['LB-TESTING'] = '1'
 
-    lines = HelperWhereClauseFormat().set_dictionary(test_table()).format()
-
+    helper = HelperWhereClauseFormat().set_dictionary(test_table())
+    lines = helper.format()
     assert (type(lines)==list) # is a list
 
+    print('xxxtemplate', helper.get_template(ContextKey('search-context','uuid')))
+    assert '' in helper.get_template(ContextKey('search-context','uuid'))
     #pprint.pprint(lines)
     print('lines','\n'.join(lines))
+
+    os.environ['LB-TESTING'] = '0'
+
 if __name__ == "__main__":
     main()
+'''

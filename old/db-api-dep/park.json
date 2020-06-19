@@ -1,0 +1,102 @@
+{
+  "park": {
+    "user": {
+      "overwrite": "0",
+      "name": "user",
+      "table": "register",
+      "methods": [
+        "upsert",
+        "select",
+        "test"
+      ],
+      "role": "anonymous",
+      "version": "1.0.0",
+      "privileges": [
+        {
+          "privilege": "EXECUTE",
+          "type": "FUNCTION",
+          "parameters": "JSONB",
+          "role": "anonymous"
+        }
+      ],
+      "form": [
+        {
+          "name": "id",
+          "context": "uuid-TEXT",
+          "type": "TEXT",
+          "json": "RI",
+          "search": "uuid",
+          "calculated": "uuid_generate_v4()"
+        },
+        {
+          "name": "type",
+          "context": "type",
+          "type": "TEXT",
+          "json": "CRI",
+          "const": "app"
+        },
+        {
+          "name": "app-id",
+          "context": "name",
+          "type": "TEXT",
+          "json": "CRI",
+          "default": "my-app"
+        },
+        {
+          "name": "username",
+          "context": "email",
+          "type": "TEXT",
+          "json": "Cru"
+        },
+        {
+          "name": "password",
+          "context": "password",
+          "description": [
+            "Passwords are stored in table row, but not in json row",
+            "Remove the password from form before inserting",
+            "Remove the password from form before updating"
+          ],
+          "type": "TEXT",
+          "json": "CuD"
+        }
+      ],
+      "test-forms": [
+        {
+          "type": "insert",
+          "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.app( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]",
+          "token": "sign('{{pattern}}'::json, {{password}})",
+          "pattern": {
+            "username": "testuser@register.com",
+            "role": "anonymous"
+          },
+          "password": "current_setting('app.jwt_secret')",
+          "form": {
+            "type": "app",
+            "app-id": "my-test-app@1.0.0",
+            "username": "testuser@register.com",
+            "email": "test@register.com",
+            "password": "g1G!gggg",
+            "test": "insert"
+          },
+          "expected": "'{\"result\": \"1\"}'::JSONB",
+          "description": "'app - insert test'::TEXT"
+        },
+        {
+          "type": "select",
+          "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.app( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]",
+          "token": "sign('{{pattern}}'::json, {{password}} )",
+          "pattern": {
+            "username": "testuser@register.com",
+            "role": "anonymous"
+          },
+          "password": "current_setting('app.jwt_secret')",
+          "form": {
+            "id": "my-test-app@1.0.0"
+          },
+          "expected": "'[a-zA-Z\\.0-9_]+'",
+          "description": "'app - select from {{tbl-name}} by id and check token'::TEXT"
+        }
+      ]
+    }
+  }
+}

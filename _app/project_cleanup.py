@@ -9,50 +9,48 @@ class ProjectCleanup(Step):
     def description(self):
         return 'Cleanup temp files. '
 
+    def cleanOut(self, folder):
+        print('cleanout ', folder )
+        #expanded_folder = self.appSettings.getFolder('expanded-folder')
+        filelist = Util().getFileList(folder)
+        #print('files', filelist)
+        for fn in filelist:
+            #print('file', fn)
+            Util().deleteFile(folder, fn)
+
+        return self
+
     def process(self):
-        #temp folder cleanup
-        self.getData()
-        #print('data', self.getData())
-        temp_folder = self.getFolder('temp-folder')
-        ext_list = ['.compiled', '.tmpl','.json']
-        #print('Cleanup ', temp_folder)
 
-        ############
-        # templates
-        # copy <code-folder>/__resource__/template/<file-name>.tmpl TO <working-folder>/example/template/<file-name>.tmpl
-        #ext = 'config.tmpl'
-        for ext in ext_list:
-            file_list = Util().getFileList(temp_folder, ext=ext)
+        #ext_list = ['.compiled', '.tmpl','.json']
 
-            for fn in file_list:
-                Util().deleteFile(temp_folder, fn)
+        #####
+        self.cleanOut(self.appSettings.getFolder('expanded-folder'))
 
         return self
 
 def main():
-    from app_environment import AppEnvironment
-    from app_create_folders import AppCreateFolders
-    from app_initialize import AppInitialize
-    from project_environment import ProjectEnvironment
+    from app_settings import AppSettingsTest
+
+    #from app_environment import AppEnvironment
+    #from app_create_folders import AppCreateFolders
+    #from app_initialize import AppInitialize
+    #from project_environment import ProjectEnvironment
+    import os
 
     from util import Util
+    os.environ['LB-TESTING'] = '1'
+    appSettings = AppSettingsTest()
 
-    step = ProjectCleanup().setWorkingFolder('temp').run()
+    step = ProjectCleanup().run()
 
     print('* {}'.format(step.getClassName()))
     print('  - {}'.format(step.getDescription()))
 
-    '''
-    app = AppEnvironment()\
-        .add(AppCreateFolders())\
-        .add(AppInitialize())\
-        .add(ProjectEnvironment())\
-        .add(step)\
-        .run()
-    '''
-
-    filelist = Util().getFileList(step.getFolder('temp-folder'),ext='.compiled')
+    filelist = Util().getFileList(appSettings.getFolder('expanded-folder'))
     print('filelist', filelist)
     assert( len(filelist)==0) # has files
+    os.environ['LB-TESTING'] = '0'
+
 if __name__ == "__main__":
     main()

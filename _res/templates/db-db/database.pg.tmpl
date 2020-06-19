@@ -1,33 +1,37 @@
 \c postgres
 
-DROP DATABASE IF EXISTS [[db-prefix]]_db;
+DROP DATABASE IF EXISTS [[LB_DB_PREFIX]]_db;
 
-CREATE DATABASE [[db-prefix]]_db;
+CREATE DATABASE [[LB_DB_PREFIX]]_db;
 
 -- SET DB
 
-\c [[db-prefix]]_db
+\c [[LB_DB_PREFIX]]_db
 
-create schema if not exists [[db-prefix]]_schema;
-[[extensions]]
+create schema if not exists [[LB_DB_PREFIX]]_schema;
+[[db-extensions.*:*.CREATE EXTENSION IF NOT EXISTS {{name}};.; ]]
+-- db-extensions
 
-SET search_path TO [[db-prefix]]_schema, public; -- put everything in [[db-prefix]]_schema;
+SET search_path TO [[LB_DB_PREFIX]]_schema, public; -- put everything in [[LB_DB_PREFIX]]_schema;
 
 -- the following should be set by the admin manually, it is set here for convenience
-ALTER DATABASE [[db-prefix]]_db SET "app.jwt_secret" TO '[[LB_JWT_PASSWORD]]';
+-- models
+[[models.*:*.ALTER DATABASE {{LB_DB_PREFIX}}_db SET "{{app-key}}" TO \'{{model}}\';]]
 
-ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_jwt" TO '[[LB_REGISTER_JWT]]';
-ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_guest" TO '[[LB_REGISTER_GUEST]]';
-ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_editor" TO '[[LB_REGISTER_EDITOR]]';
-ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_registrant" TO '[[LB_REGISTER_REGISTRANT]]';
-ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_registrar" TO '[[LB_REGISTER_REGISTRAR]]';
-ALTER DATABASE [[db-prefix]]_db SET "app.lb_register_testuser" TO '[[LB_REGISTER_TESTUSER]]';
+ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.jwt_secret" TO '[[LB_JWT_PASSWORD]]';
+/*
+x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_jwt" TO '[[LB_REGISTER_JWT]]';
+x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_anonymous" TO '[[LB_REGISTER_GUEST]]';
+x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_editor" TO '[[LB_REGISTER_EDITOR]]';
+x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_registrant" TO '[[LB_REGISTER_REGISTRANT]]';
+x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_registrar" TO '[[LB_REGISTER_REGISTRAR]]';
+x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_testuser" TO '[[LB_REGISTER_TESTUSER]]';
 
-ALTER DATABASE [[db-prefix]]_db SET "app.lb_web_guest" TO '[[LB_WEB_GUEST]]';
-ALTER DATABASE [[db-prefix]]_db SET "app.lb_web_guest_role" TO '[[LB_WEB_GUEST_ROLE]]';
-ALTER DATABASE [[db-prefix]]_db SET "app.lb_web_guest_password" TO '[[LB_WEB_GUEST_PASSWORD]]';
-ALTER DATABASE [[db-prefix]]_db SET "app.lb_admin_registrar_password" TO '[[LB_ADMIN_REGISTRAR_PASSWORD]]';
-
+ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_web_anonymous" TO 'LB_WEB_ANONYMOUS]]';
+ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_web_anonymous_role" TO 'LB_WEB_ANONYMOUS_ROLE]]';
+ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_web_anonymous_password" TO 'LB_WEB_ANONYMOUS_PASSWORD]]';
+ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_admin_registrar_password" TO 'LB_ADMIN_REGISTRAR_PASSWORD]]';
+*/
 
 /*
 CREATE OR REPLACE FUNCTION log_last_name_changes()

@@ -1,0 +1,21 @@
+/*\c [[LB_DB_PREFIX]]_db
+--select [[LB_DB_PREFIX]]_schema.credential(current_setting('app.lb_register_anonymous')::jsonb);
+
+INSERT INTO reg_schema.register(
+    reg_app_name,
+    reg_version
+) VALUES (
+    '[[LB_APP_NAME]]',
+    '1.0.0'
+);
+
+INSERT INTO [[LB_DB_PREFIX]]_schema.credentials(
+    crd_email,
+    crd_password,
+    crd_row
+) VALUES (
+    'smithj@gmail.com',
+    's1S!ssss',
+    '{"username":"smithj@gmail.com", "roles": ["editor"]}'::jsonb
+);
+*/

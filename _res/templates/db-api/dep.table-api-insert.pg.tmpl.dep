@@ -1,0 +1,41 @@
+\c [[LB_DB_PREFIX]]_db
+
+-------------------------------
+-- INSERT
+---------
+
+CREATE OR REPLACE FUNCTION
+[[LB_DB_PREFIX]]_schema.[[api-name]](
+  _token TEXT,
+  [[insert-parameters]]
+) RETURNS TEXT
+AS $$
+    Declare rc TEXT;
+    Declare role TEXT;
+    Declare id int;
+  BEGIN
+    rc := '{"result":-1}';
+    role := [[LB_DB_PREFIX]_schema.get_role(_token);
+    BEGIN
+      if [[LB_DB_PREFIX]]_schema.is_valid_token(_token,'[[tbl-role]]') then
+        rc := '{"result",-2}';
+        INSERT INTO [[LB_DB_PREFIX]]_schema.[[tbl-name]](
+          [[insert-columns]]
+          ) VALUES (
+          [[insert-values]]
+          );
+          rc := '{"result":1}';
+      end if;
+
+    EXCEPTION WHEN unique_violation THEN
+      rc := '{"result",-3}';
+    END;
+    RETURN rc;
+  END;
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION
+  [[LB_DB_PREFIX]]_schema.[[api-name]](
+  [[insert-parameter-types]]
+  ) TO anonymous;
+

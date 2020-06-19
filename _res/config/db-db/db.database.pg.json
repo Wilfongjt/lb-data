@@ -1,7 +1,77 @@
 {
-    "db-prefix": "ex",
     "db-type": "postgres",
     "db-type-abbr": "pg",
     "type": "database",
-    "extensions": ["pgcrypto", "pgtap", "pgjwt"]
+    "db-extensions": [{"name": "pgcrypto"}, {"name": "pgtap"}, {"name": "pgjwt"}, {"name": "\"uuid-ossp\""}],
+    "model-template": "[[models.*:*.ALTER DATABASE {{LB_DB_PREFIX}}_db SET \"{{app-key}}\" TO '{{model}}';]]",
+
+    "models": [
+
+        {
+            "type": "model",
+            "env-key": "LB_REGISTER_JWT",
+            "app-key": "app.lb_register_jwt",
+            "description": ["JSON WEB Token"],
+            "model": {
+                "username": "jwt@register.com",
+                "email": "jwt@register.com",
+                "password": "PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG",
+                "role": "jwt"
+            }
+        },
+        {
+            "type": "model",
+            "env-key": "LB_REGISTER_ANONYMOUS",
+            "app-key": "app.lb_register_anonymous",
+            "description": ["define me"],
+            "model":{"username":"anonymous@register.com",
+                     "email":"anonymous@register.com",
+                     "password":"g1G!gggg",
+                     "role":"anonymous"}
+        },
+        {
+            "type": "model",
+            "env-key": "LB_REGISTER_EDITOR",
+            "app-key": "app.lb_register_editor",
+            "description": ["define me"],
+            "model": {"username":"editor@register.com",
+                      "email":"editor@register.com",
+                      "password":"g1G!gggg",
+                      "role":"editor"}
+        },
+        {
+            "type": "model",
+            "env-key": "LB_REGISTER_REGISTRANT",
+            "app-key": "app.lb_register_registrant",
+            "description": ["define me"],
+            "model": {"username":"registrant@register.com",
+                      "email":"registrant@register.com",
+                      "password":"g1G!gggg",
+                      "role":"registrant"}
+        },
+        {
+            "type": "model",
+            "env-key": "LB_REGISTER_REGISTRAR",
+            "app-key": "app.lb_register_registrar",
+            "description": ["define me"],
+            "model": {"username":"registrar@register.com",
+                      "email":"registrar@register.com",
+                      "password":"g1G!gggg",
+                      "role":"registrar"}
+        },
+        {
+            "type": "model",
+            "env-key": "LB_REGISTER_TESTUSER",
+            "app-key": "app.lb_register_testuser",
+            "description": ["define me"],
+            "model": {"type":"app",
+                      "app-name":"my-app",
+                      "version": "1.0.0",
+                      "username":"testuser@register.com",
+                      "email":"testuser@register.com",
+                      "password":"g1G!gggg",
+                      "role":"registrar"}
+        }
+    ]
 }
+

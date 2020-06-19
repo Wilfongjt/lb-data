@@ -1,0 +1,23 @@
+\c [[LB_DB_PREFIX]]_db
+
+----------------------------------------------
+
+CREATE OR REPLACE FUNCTION
+[[LB_DB_PREFIX]]_schema.get_app_id(app_name TEXT, version TEXT) RETURNS TEXT
+AS $$
+  DECLARE id TEXT;
+
+BEGIN
+    -- get id from register for a specifie version
+
+    select reg_id into id
+    from reg_schema.register
+    where reg_form->>'version'='1.0.0'
+        and reg_form->>'app_name'=app_name;
+
+  RETURN id;
+
+END;  $$ LANGUAGE plpgsql;
+
+
+

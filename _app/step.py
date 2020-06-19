@@ -19,6 +19,7 @@ class Step(Link):
         self.appSettings = AppSettings()
         self.lbtesting = os.getenv('LB-TESTING') or '0'
         if self.lbtesting == '1':
+            #print('Using AppSettingsTest')
             self.appSettings = AppSettingsTest()
 
         self.data = None
@@ -163,6 +164,9 @@ class StepMock(Step):
         super().__init__()
 '''
 def main():
+    import os
+
+    os.environ['LB-TESTING'] = '1'
     #a = Step().setWorkingFolder('temp')
     a = Step()
     a.log('process getData {}'.format(a.getData()))
@@ -207,7 +211,7 @@ def main():
     #assert(a.getCopyFile().working_folder_name == 'pg-dev')
     #assert(a.getCopyFile().project_name == 'example')
     a.log('process getData {}'.format(b.getData()))
-
+    os.environ['LB-TESTING'] = '0'
 
 if __name__ == "__main__":
     main()

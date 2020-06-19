@@ -1,0 +1,123 @@
+\c [[LB_DB_PREFIX]]_db
+
+-- gen from default tmpl
+CREATE OR REPLACE FUNCTION
+[[LB_DB_PREFIX]]_schema.app(_token TEXT, _json JSONB) RETURNS JSONB
+AS $$
+  Declare rc jsonb;
+  Declare _cur_row JSONB;
+  Declare _model_user JSONB;
+  -- declare-upsert
+  [[declare-upsert]]
+  BEGIN
+
+    _model_user := current_setting('app.lb_register_[[api-role]]')::jsonb;
+
+    -- figure out which token: app-token or user-token
+    if [[LB_DB_PREFIX]]_schema.is_valid_token(_token, _model_user ->> 'role') then
+		rc := '{"result":"1"}'::JSONB;
+    else
+        return '{"result": "0"}'::JSONB;
+    end if;
+
+    -- UPDATE or INSERT
+    if _json ? '[[api-form.context:uuid.{{name}}]]' then
+    	rc := '{"result":"-2"}'::JSONB;
+
+		-- get current json object
+		select [[tbl-prefix]]_[[tbl-fields.context:form.{{name}}]] as _usr
+		  into _cur_row
+		  from [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+		  where [[tbl-prefix]]_[[api-form.context:uuid.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:uuid.{{name}}]]' as UUID) and [[tbl-prefix]]_[[api-form.context:type.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:type.{{name}}]]' as TEXT);
+
+        rc := '{"result":"-2.1"}'::JSONB;
+
+		-- update existing json object with input values
+        BEGIN
+            -- sync-json-values to table values
+
+            -- update_combos_format
+            [[update-combination-code]]
+            -- update_combos_format end
+
+        EXCEPTION
+		    WHEN check_violation then
+		        rc := '{"result":"-2.2"}'::JSONB;
+		    WHEN others then
+		        rc := '{"result":"-2.2"}'::JSONB;
+        END;
+		if not FOUND then
+		  return format('{"result":"-2.2"}')::JSONB;
+		end if;
+	    rc := '{"result":"2"}'::JSONB;
+    else
+    	BEGIN
+    	    -- check required attributes
+            if _json ? '[[api-form.context:type.{{name}}]]' then
+              if _json ->> '[[api-form.context:type.{{name}}]]' = 'app' then
+                  -- expected form values on insert
+                  if not([[api-form.json:(C)._json ? '{{name}}'.and]]) then
+                    return '{"result":"-2"}'::JSONB;
+                  end if;
+              else
+                 return '{"result":"-4"}'::JSONB;
+              end if;
+            else
+                 return '{"result":"-5"}'::JSONB;
+            end if;
+    	    -- set defaults just in case
+
+            _active = true;
+
+            -- required sync assignments
+            if _json ? '[[api-form.context:type.{{name}}]]' then
+                _[[api-form.context:type.{{name}}]] := _json ->> '[[api-form.context:type.{{name}}]]';
+            else
+                return '{"result":"-21"}'::JSONB;
+            end if;
+
+            if _json ? '[[api-form.context:password.{{name}}]]' then
+                _[[api-form.context:password.{{name}}]] := _json ->> '[[api-form.context:password.{{name}}]]';
+            else return '{"result":"-22"}'::JSONB; end if;
+
+            -- sync attributes to object
+            _[[tbl-fields.context:form.{{name}}]] := _json - '[[api-form.context:password.{{name}}]]';
+
+            -- validate
+            if length(_[[api-form.context:password.{{name}}]]) < 8 then
+                return '{"result":"-1.4"}'::JSONB;
+            end if;
+
+			rc := '{"result":"1"}'::JSONB;
+
+			--insert-statement
+
+			INSERT
+              INTO [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+              (
+              [[insert-columns]]
+              ) VALUES (
+                [[insert-values]]
+              );
+		EXCEPTION
+		    WHEN unique_violation THEN
+		        rc := '{"result":"-1.1"}'::JSONB;
+		    WHEN check_violation then
+		        rc := '{"result":"-1.2"}'::JSONB;
+		    WHEN others then
+		        rc := '{"result":"-1.3"}'::JSONB;
+		END;
+    end if;
+    RETURN rc;
+  END;
+$$ LANGUAGE plpgsql;
+
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION
+  [[LB_DB_PREFIX]]_schema.[[api-name]](
+  TEXT, JSONB
+  ) TO anonymous;
+
+
+

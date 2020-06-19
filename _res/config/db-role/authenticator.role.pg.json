@@ -1,4 +1,4 @@
 {
-    "type": "role",
+    "type": "role.pg",
     "role-name": "authenticator"
 }

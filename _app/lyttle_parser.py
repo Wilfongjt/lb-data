@@ -48,6 +48,8 @@ class LyttleParser():
         return results
 
 def main():
+    import os
+    os.environ['LB-TESTING'] = '1'
     lst = ['[[asdfasd]]'
         ,'qbc[[asdf-asd]]'
         , 'abc[[asdf-asd]]def'
@@ -63,6 +65,6 @@ def main():
 
 
     # lp = LyttleParser('')
-
+    os.environ['LB-TESTING'] = '0'
 if __name__ == "__main__":
     main()

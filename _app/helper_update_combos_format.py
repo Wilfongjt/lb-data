@@ -1,9 +1,35 @@
-
+"""
 from helper import Helper
 from app_settings import AppSettings
 import itertools
 from helper_where_clause_format import HelperWhereClauseFormat
+from list_fields import FieldList
+'''
+if all atts
+elsif combinations
+elsif
+else
+end if;
+(a,b,c) (a,b) (a,c) (b,c), (a), (b), (c)
+['_{} := _json ->> {}'.format(f['name'],self.f['name']) for f in FieldList(self.dictionary, ['u', 'U'])]
+_id := _json ->> cast(_json::jsonb ->> 'uuid' as UUID)
+_password := _json ->> 'password' 
+_active := _json ->> 'active'
+_form := _json - 'password'
 
+tbl_prefix = self.dictionary['tbl-prefix']
+if _json
+    update reg_schema.register
+        set
+            reg_password = _password,  reg_active = _active, reg_form = _form 
+        where
+            reg_id='<uuid>' and reg_type='<type>'     
+
+        set 
+            [[update-columns]]
+        where
+           ' and '.join(['{}_{} = _{}'.format(tbl_prefix, f['name'],f['name']) for f in Fields(dict, ['I'])])
+'''
 class HelperUpdateCombosFormat(Helper):
     def __init__(self, step=None):
         super().__init__(step)
@@ -19,6 +45,10 @@ class HelperUpdateCombosFormat(Helper):
         return self.lines
 
     def process(self):
+        '''
+        generates a list of
+        :return:
+        '''
         rc = []
         if self.dictionary == None:
             raise Exception('Table Dictionary is not set!')
@@ -26,39 +56,50 @@ class HelperUpdateCombosFormat(Helper):
         fieldname_combos = self.get_fieldname_combos()
 
         rows = self.get_rownames()
-
+        #
         i = 0
         for name_list in fieldname_combos:
             d = ['_json ? \'{}\''.format(n) for n in name_list]
 
             if i == 0:
-                self.lines.append('            if {} then'.format(' and '.join(d)))
+                self.lines.append('        '
+                                  ''
+                                  ''
+                                  '    if {} then'.format(' and '.join(d)))
             else:
                 self.lines.append('            elsif {} then'.format(' and '.join(d)))
 
             self.add_update_template(list(name_list)+rows)
             i += 1
 
+        self.lines.append('            else')
         for name_list in rows[::-1]:
-            self.lines.append('            else')
+            #self.lines.append('            else')
             self.add_update_template([name_list])
         self.lines.append('            end if;')
 
         return self
 
     def get_rownames(self):
-        row_names = [f['name'] for f in self.dictionary['fields'] if 'crud' in f and 'row' in f['context']]
+
+        row_names = [f['name'] for f in FieldList(self.dictionary,['F'])]
+        #row_names = [f['name'] for f in self.dictionary['fields']
+        #             if 'crud' in f and 'row' in f['context']]
         if len(row_names) < 1:
             raise Exception('No json role defined!')
         if len(row_names) > 1:
-            raise Exception('Only 1 "row" field allowed!')
+            raise Exception('Only 1 "form" context field allowed!')
         return row_names
+    #def getRequired(self):
+
 
     def get_fieldname_combos(self):
 
         #names = ['_json ? \'{}\''.format(f['name']) for f in self.dictionary['fields'] if 'crud' in f and 'json' in f and 'c' in f['crud']]
-        names = [f['name'] for f in self.dictionary['fields'] if
-                 'crud' in f and 'json' in f and 'c' in f['crud']]
+        #names = [f['name'] for f in self.dictionary['fields']
+        #         if 'crud' in f and 'u' in f['crud'] and 'row' not in f['context']]
+
+        names = [f ['name'] for f in FieldList(self.dictionary,['u']) if 'row' not in f['context']]
 
         all_combinations = []
         for r in range(len(names) + 1):
@@ -76,15 +117,15 @@ class HelperUpdateCombosFormat(Helper):
         #set_rows = [' {}_{} = _{}'.format(tblpfx, nm, nm) for nm in self.get_rownames() ]
         #set_names.append('{}_{} = _{}'.format(tblpfx, ))
         #set_names = set_names + set_rows
-        pfx = self.dictionary['db-prefix']
+        pfx = self.dictionary['LB_DB_PREFIX']
         tblname = self.dictionary['tbl-name']
         #where_lines = HelperWhereClauseFormat().set_dictionary(self.getConfigFile()).format()
         where_lines = HelperWhereClauseFormat().set_dictionary(self.dictionary).format()
 
-        self.lines.append('              update ')
-        self.lines.append('                  {}_schema.{}'.format(pfx, tblname))
-        self.lines.append('                set ')
-        self.lines.append('                  {} '.format(', '.join(set_names)))
+        #self.lines.append('              update  ')
+        self.lines.append('               update {}_schema.{}'.format(pfx, tblname))
+        #self.lines.append('                set ')
+        self.lines.append('                set {} '.format(', '.join(set_names)))
         self.lines.append('                where ')
 
         for w in where_lines:
@@ -92,93 +133,23 @@ class HelperUpdateCombosFormat(Helper):
 
         return self
 
-def test_table():
-    return {
-    "type": "table",
-    "tbl-name": "credentials",
-    "tbl-prefix": "crd",
-    "tbl-role": "guest",
-    "api-overwrite": "0",
-    "api-name": "credential",
-    "api-table": "credentials",
-    "api-methods": ["upsert", "select"],
-    "fields": [{
-            "name": "id",
-            "context": "pk",
-            "type": "INTEGER",
-            "crud": "r",
-            "json": "ru",
-            "required": "ru",
-            "search": "confirm-id"
-        },{
-            "name": "username",
-            "context": "email",
-            "type": "TEXT",
-            "crud": "cru",
-            "json": "cru",
-            "required": "cru",
-            "search": "confirm-token-username"
-        },{
-            "name": "password",
-            "context": "password",
-            "description": "Passwords are stored in table row, but not in json row",
-            "type": "TEXT",
-            "crud": "cru",
-            "json": "",
-            "required": "cru"
-        },{
-            "name": "row",
-            "context": "row",
-            "description": "json to define role access to multiple apps.",
-            "type": "JSONB",
-            "crud": "ru",
-            "required": "cru"
-        },{
-            "name": "email",
-            "context": "email",
-            "type": "TEXT",
-            "json": "cru",
-            "required": "cru"
-        },{
-            "name": "roles",
-            "context": "roles",
-            "description": "User can have multiple roles",
-            "type": "JSONB",
-            "default": ["registrant"],
-            "crud": "",
-            "json": "cr",
-            "required": "r"
-        },{
-            "name": "created",
-            "context": "created",
-            "type": "TIMESTAMP",
-            "crud": "r",
-            "required": "r"
-        },{
-            "name": "updated",
-            "context": "updated",
-            "type": "TIMESTAMP",
-            "crud": "r",
-            "required": "r"
-        },{
-            "name": "active",
-            "context": "active",
-            "type": "BOOLEAN",
-            "default": "true",
-            "crud": "r",
-            "json": "ru",
-            "required": "r"
-        }],
-        "db-prefix":"reg"
-}
-
 def main():
     import pprint
-    lines = HelperUpdateCombosFormat().set_dictionary(test_table()).format()
+    import os
 
+    from test_func import test_table
+    os.environ['LB-TESTING'] = '1'
+
+    helper = HelperUpdateCombosFormat().set_dictionary(test_table())
+
+    lines = helper.format()
+    #print('get_fieldname_combos', helper.get_fieldname_combos())
     assert (type(lines)==list) # is a list
 
-    #pprint.pprint(lines)
-    print('\n'.join(lines))
+    pprint.pprint(lines)
+    #print('\n'.join(lines))
+    os.environ['LB-TESTING'] = '0'
+
 if __name__ == "__main__":
     main()
+"""

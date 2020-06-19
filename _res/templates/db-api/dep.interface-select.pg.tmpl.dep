@@ -1,0 +1,42 @@
+\c [[LB_DB_PREFIX]]_db
+
+-------------------------------
+-- Select
+---------
+
+CREATE OR REPLACE FUNCTION
+[[LB_DB_PREFIX]]_schema.[[api-name]](_token text, id uuid) RETURNS TEXT
+AS $$
+  DECLARE rc TEXT;
+  DECLARE secret TEXT;
+  DECLARE rc_form JSONB;
+BEGIN
+
+  -- returns a single user's info
+  -- need to figure out postgres environment variables
+
+  rc := '{"result":-1}';
+
+  if [[LB_DB_PREFIX]]_schema.is_valid_token(_token) then
+
+    select [[tbl-prefix]]_[[tbl-fields.context:form.{{name}}]]
+    into rc_form
+    from [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+	where [[tbl-prefix]]_[[api-form.context:uuid.{{name}}]]= id;
+
+    if rc is NULL then
+      rc := '{"result":-1}'::JSONB;
+    else
+      rc :=  format('{"result":%s}',rc_form::TEXT)::JSONB;
+    end if;
+  end if;
+
+  RETURN rc;
+END;  $$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION
+  [[LB_DB_PREFIX]]_schema.[[api-name]](
+  TEXT, UUID
+  ) TO anonymous;
+
+

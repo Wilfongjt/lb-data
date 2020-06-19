@@ -2,7 +2,84 @@ from util import Util
 import json
 import os
 
-class FileAsList(list):
+
+class ListFile(list):
+    def __init__(self, folder_name, file_name):
+        self.file_name = file_name
+        self.folder_name = folder_name
+        #self.echo = False
+
+    def getClassName(self):
+        return self.__class__.__name__
+
+    def exists(self):
+        return Util().file_exists(self.getFolderName(), self.getFileName())
+
+    def isEmpty(self):
+        if len(self) == 0:
+            return True
+        return False
+
+    def setFileName(self, filename):
+        self.file_name = filename
+        return self
+
+    def getFileName(self):
+        if self.file_name == None :
+            raise Exception('{} file name is not set!'.format(self.getClassName()) )
+        return self.file_name
+
+    def setFolderName(self, foldername):
+        self.folder_name = foldername
+        return self
+
+    def getFolderName(self):
+        return self.folder_name
+
+    def append(self, item ):
+        super().append(item )
+        return self
+
+    def append_lines(self, line_list):
+
+        for ln in line_list:
+            self.append(ln)
+        return self
+
+    def write(self):
+        print('B copy {}'.format(self.getClassName()) )
+
+        self.copy(self.getFolderName(),self.getFileName())
+        return self
+
+    def read(self):
+        path_filename = '{}/{}'.format(self.getFolderName(), self.getFileName())
+        with open(path_filename) as f:
+            for line in f:
+                line = line.rstrip()
+                self.append(line)
+
+        return self
+
+    def copy(self, folder, filename):
+        print('A copy {} {} {}'.format(self.getClassName(), folder, filename))
+        with open('{}/{}'.format(folder, filename), 'w') as f:
+            for line in self:
+                #print('write', line)
+                f.write('{}\n'.format(line))
+
+        return self
+
+    def delete(self):
+        Util().deleteFile(self.getFolderName(), self.getFileName())
+        return self
+
+    def toString(self):
+        return '\n'.join(self)
+
+"""
+class depFileAsList(list):
+
     def __init__(self, folder_name, file_name):
         self.file_name = file_name
         self.folder_name = folder_name
@@ -92,7 +169,7 @@ class FileAsList(list):
 
         return self
 
-
+"""
 
 class FileAsDict(dict):
     def __init__(self, folder_name, file_name):
@@ -131,14 +208,23 @@ class FileAsDict(dict):
         # copy to the dict
         for key in configuration_dict:
             self[key] = configuration_dict[key]
+
+        #self.loadEnv()
+
         return self
 
     def loadEnv(self):
         # get LB_ env vars
-
+        '''
         for v in os.environ:
             if v.startswith('LB_'):
                 self[v]= os.getenv(v)
+        '''
+        return self
+
+    def load(self, dictionary):
+        for key in dictionary:
+            self[key] = dictionary[key]
         return self
 
     def write(self):
@@ -146,6 +232,8 @@ class FileAsDict(dict):
         return self
 
     def copy(self, folder, filename):
+        #print('B copy {} {} {}'.format(self.getClassName()), folder, filename)
+
         path_filename = '{}/{}'.format(folder, filename)
 
         with open(path_filename, 'w') as json_file:
@@ -158,22 +246,25 @@ class FileAsDict(dict):
 def main():
     from pathlib import Path
     from util import Util
-
+    os.environ['LB-TESTING'] = '1'
     folder = '{}/temp'.format(str(Path.home()))
     file_name = 'junk2.txt'
-    #print('folder',folder)
+
     if not Util().folder_exists(folder):
       Util().createFolder(folder)
 
     #print('testing FileAsList')
-    fileList = FileAsList('a','b')
+
+    fileList = ListFile('folder','name')
     fileList.append('a')
     fileList.append('b')
     fileList.append('c')
+    #print('getClassList', fileList.getClassName())
 
+    assert type(fileList) == ListFile
     assert(['a','b','c'] == fileList)
-    assert(fileList.getFolderName()=='a')
-    assert(fileList.getFileName()=='b')
+    assert(fileList.getFolderName()=='folder')
+    assert(fileList.getFileName()=='name')
 
 
     ######################################
@@ -183,9 +274,11 @@ def main():
 
     # write a junk file
     print('* write file')
-    os.environ['LB_'] = 'D'
+    #os.environ['LB_'] = 'D'
     print('  - folder', folder)
     aFile = FileAsDict(folder, file_name)
+
+
     aFile['a'] = 'A'
     aFile['b'] = 'B'
     aFile['c'] = 'C'
@@ -202,11 +295,12 @@ def main():
     aFile2 = FileAsDict(folder, file_name).read()
     print('  - aFile2', aFile2)
     #print('  - len', len(aFile2))
-    assert (len(aFile2) >= 4)
+    assert (len(aFile2) >= 3)
 
     # cleanup
     aFile.delete()
     assert (not Util().file_exists(folder, expected))
 
+    os.environ['LB-TESTING'] = '0'
 if __name__ == "__main__":
     main()

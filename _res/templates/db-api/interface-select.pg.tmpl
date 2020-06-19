@@ -1,0 +1,58 @@
+\c [[LB_DB_PREFIX]]_db
+
+-------------------------------
+-- Select
+---------
+
+CREATE OR REPLACE FUNCTION
+[[LB_DB_PREFIX]]_schema.[[api-name]](_token TEXT, _form_text TEXT) RETURNS JSONB
+AS $$
+  DECLARE rc TEXT;
+  DECLARE secret TEXT;
+  DECLARE rc_form JSONB;
+  DECLARE _model_user JSONB;
+
+  [[tbl-fields.*:*.Declare _{{name}} {{type}};]]
+
+BEGIN
+
+    _model_user := current_setting('app.lb_register_anonymous')::jsonb;
+
+    -- figure out which token: app-token or user-token
+    if not([[db-prefix]]_schema.is_valid_token(_token, _model_user ->> 'role')) then
+        return '{"status": "401"}'::JSONB;
+    end if;
+
+    -- convert Text to JSONB to ref
+    _form := _form_text::JSONB;
+
+    -- confirm proper attributes in _form
+    if not(_form ? 'id') then
+        return '{"status":"400", "msg":"Bad Request id"}'::JSONB;
+    end if;
+
+    -- set where clause
+    _id = _form ->> 'id';
+
+    -- go get the data
+
+    select [[tbl-prefix]]_[[tbl-fields.context:form.{{name}}]]
+    into rc_form
+    from [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+    where [[tbl-prefix]]_[[api-form.context:uuid-TEXT.{{name}}]]= _id;
+
+    if rc_form is NULL then
+      rc_form := '{"status":"204", "msg":"No Content","result": {}}'::JSONB;
+    else
+      rc_form :=  format('{"status":"200", "result":%s}',rc_form::TEXT)::JSONB;
+    end if;
+
+    RETURN rc_form;
+END;  $$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION
+  [[LB_DB_PREFIX]]_schema.[[api-name]](
+  TEXT, TEXT
+  ) TO anonymous;
+
+

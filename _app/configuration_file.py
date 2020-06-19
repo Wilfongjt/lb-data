@@ -1,3 +1,4 @@
+
 import json
 import os.path
 from pathlib import Path
@@ -6,6 +7,7 @@ from util import Util
 from file import FileAsDict
 from app_settings import AppSettings, AppSettingsTest
 #from crud import CRUD
+from text_file import TextFile
 
 
 class ConfigurationDict(FileAsDict):
@@ -14,6 +16,7 @@ class ConfigurationDict(FileAsDict):
     '''
     def __init__(self, foldername=None, filename=None):
         super().__init__(foldername, filename)
+        self.LB = True # ad env taht start with LB
         self.appSettings = AppSettings()
 
         self.lbtesting = os.getenv('LB-TESTING') or '0'
@@ -24,11 +27,15 @@ class ConfigurationDict(FileAsDict):
             # default to source code resource, assume we are going to copy
             if foldername == None:
                 self.setFolderName(self.appSettings.getFolder('con-fig-folder'))
-        self.fixEnv()
+        #self.fixEnv()
 
-    def fixEnv(self):
-        self['db-prefix'] = self.appSettings.lbdb_prefix or 'NA'
-        self['db-prefix'] = self.appSettings.lbdb_prefix or 'NA'
+    def setLB(self, tf):
+        self.LB = tf
+        return self
+
+    def dep_fixEnv(self):
+        #self['LB_DB_PREFIX'] = self.appSettings.lbdb_prefix or 'NA'
+        self['LB_DB_PREFIX'] = self.appSettings.lbdb_prefix or 'NA'
         self['db-api-table-type'] = self.appSettings.lbdb_type or 'NA'
         self['db-api-table-type-abbr'] = self.appSettings.lbdb_type_abbr or 'NA'
         self['app-name'] = self.appSettings.lb_project['name']
@@ -63,13 +70,8 @@ class ConfigurationDict(FileAsDict):
         '''
         for key in dictionary:
             #self[key]=self.expand(key, dictionary[key])
-            '''
-            if 'include' in key:
-                self._include(dictionary[key])
-            else:
-                self[key] = dictionary[key]
-            '''
             self[key] = dictionary[key]
+            #print('add key', key)
         return self
 
     def read(self):
@@ -85,7 +87,7 @@ class ConfigurationDict(FileAsDict):
         #    self[key] = configuration_dict[key]
         self.add(configuration_dict)
 
-        self.fixEnv()
+        #self.fixEnv()
 
         return self
 
@@ -106,16 +108,16 @@ class ConfigurationDict(FileAsDict):
             if item != 'type':
                 self[item] = includejson[item]
         # environment
-
+        '''
         for v in os.environ:
-            if v.startswith('LB'):
+            if self.LB and v.startswith('LB'):
                 self[v] = os.environ[v]
-
+        '''
     def delete(self):
         Util().deleteFile(self.getFolderName(), self.getFileName())
         return self
 
-    def copy(self, folder, filename):
+    def copy(self, folder, filename, noLB=False):
         '''
         overloads super().copy
         remove any keys containing 'LB_'
@@ -123,6 +125,8 @@ class ConfigurationDict(FileAsDict):
         :param filename:
         :return:
         '''
+        #print('C copy {} {} {}'.format(self.getClassName(), folder, filename))
+
         path_filename = '{}/{}'.format(folder, filename)
 
         with open(path_filename, 'w') as json_file:
@@ -131,6 +135,7 @@ class ConfigurationDict(FileAsDict):
             for key in self:
                 if key.startswith('LB_'):
                     # dont overwrite source folder
+
                     if self.getFolderName() != folder:
                         data[key] = self[key]
                 else:
@@ -139,6 +144,7 @@ class ConfigurationDict(FileAsDict):
             configuration_dict = json.dump(data, json_file)
 
         return self
+
     #def getDictionary(self):
     #    return self.configuration_dict
 
@@ -178,7 +184,8 @@ def test_config():
 def main():
     from pathlib import Path
     from util import Util
-    #from mockup_test_data import MockupData
+    from test_func import test_table
+    from pprint import pprint
 
     os.environ['LB-TESTING']='1'
 
@@ -189,13 +196,13 @@ def main():
 
     print('* ConfigurationDict')
     test_config()
-
+    confFile = ConfigurationDict().add(test_table())
+    pprint(confFile)
     # ConfigurationAPI
     #print('* ConfigurationApi')
     #test_api('insert')
     #test_api('select')
     #test_api('update')
-
 
     # clean up
 

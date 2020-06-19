@@ -1,5 +1,5 @@
 {
-    "type": "role",
+    "type": "role.pg",
     "role-name": "anonymous",
     "templates": {
         "role": "CREATE ROLE ;",

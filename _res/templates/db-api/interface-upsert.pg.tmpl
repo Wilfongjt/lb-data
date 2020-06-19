@@ -1,0 +1,111 @@
+\c [[LB_DB_PREFIX]]_db
+-- general solution
+
+CREATE OR REPLACE FUNCTION
+[[LB_DB_PREFIX]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
+AS $$
+  Declare rc jsonb;
+  Declare _cur_row JSONB;
+  Declare _model_user JSONB;
+
+  [[tbl-fields.*:*.Declare _{{name}} {{type}};]]
+
+  BEGIN
+
+    _model_user := current_setting('app.lb_register_[[api-role]]')::jsonb;
+
+    -- figure out which token: app-token or user-token
+    if not([[LB_DB_PREFIX]]_schema.is_valid_token(_token, _model_user ->> 'role')) then
+        return '{"status": "401", "msg": "Bad Request, token."}'::JSONB;
+    end if;
+
+    _form = _json;
+    -- never store the password in form
+    if _json ? 'password' then
+        _form = _json - 'password';
+    end if;
+
+    -- UPDATE or INSERT
+    -- is primary key in form
+    if _json ? '[[api-form.context:pk.{{name}}]]' then
+    	-- rc := '{"status":"400","msg": "Bad Request, missing id."}'::JSONB;
+        BEGIN
+            -- get current json object
+            select [[tbl-prefix]]_[[tbl-fields.context:form.{{name}}]] as _usr
+              into _cur_row
+              from [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+              where [[tbl-prefix]]_[[api-form.context:pk.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:pk.{{name}}]]' as TEXT) and [[tbl-prefix]]_[[api-form.context:type.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:type.{{name}}]]' as TEXT);
+
+        EXCEPTION
+		    WHEN others then
+		        rc := '{"status":"200","msg":"Unknown select error"}'::JSONB;
+        END;
+
+		-- update existing json object with input values
+        BEGIN
+            -- sync-json-values to table values
+
+            -- all possible combinations of updates
+            <<update-combination-code>>
+            -- update_combos_format end
+
+        EXCEPTION
+		    WHEN check_violation then
+		        rc := '{"status":"400","msg":"Bad Request, validation error"}'::JSONB;
+		    WHEN others then
+		        rc := '{"status":"500","msg":"Unknown update error"}'::JSONB;
+        END;
+		if not FOUND then
+		  return format('{"status":"404", "msg": "Not Found, on update."}')::JSONB;
+		end if;
+	    rc := '{"status":"200", "msg": "ok"}'::JSONB;
+    else
+        -- start insert
+    	BEGIN
+
+            -- confirm all required attributes are in form
+            if not([[api-form.json:(C)._json ? '{{name}}'. and ]]) then
+               return '{"status":"400","msg":"Bad Request, missing form attribute"}'::JSONB;
+            end if;
+
+            -- make sure type is correct value
+            if not(_json ->> '[[api-form.context:type.{{name}}]]' = '[[api-form.context:type.{{const}}]]') then
+                 return '{"status":"400", "msg":"Bad Request, type."}'::JSONB;
+            end if;
+
+            -- extract values needed for wrapper record
+
+            _[[api-form.context:type.{{name}}]] := _json ->> '[[api-form.context:type.{{name}}]]';
+
+            _[[api-form.context:password.{{name}}]] := _json ->> '[[api-form.context:password.{{name}}]]';
+
+            -- never store password in form
+
+            _[[tbl-fields.context:form.{{name}}]] := _json - '[[api-form.context:password.{{name}}]]';
+
+            -- validate
+            if length(_[[api-form.context:password.{{name}}]]) < 8 then
+                return '{"status":"400", "msg": "Bad Request, not acceptable."}'::JSONB;
+            end if;
+
+			INSERT INTO [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+                ([[tbl-fields.crud:(CF).{{tbl-prefix}}_{{name}}., ]])
+              VALUES
+                ([[tbl-fields.crud:(CF)._{{name}}., ]] );
+
+            rc := '{"status":"200", "msg": "ok"}'::JSONB;
+
+		EXCEPTION
+		    WHEN unique_violation THEN
+		        rc := '{"status":"400","msg":"Bad Request, duplicate." }'::JSONB;
+		    WHEN check_violation then
+		        rc := '{"status":"400","msg":"Bad Request, validation error."}'::JSONB;
+		    WHEN others then
+		        rc := '{"status":"400","msg":"Bad Request, unknown insert error."}'::JSONB;
+		END;
+    end if;
+    RETURN rc;
+  END;
+$$ LANGUAGE plpgsql;
+
+[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_DB_PREFIX}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]

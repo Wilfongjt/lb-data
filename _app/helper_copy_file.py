@@ -1,4 +1,4 @@
-
+'''
 #from template_file import TemplateFile
 #from configuration_generate import ConfigurationGenerate
 #from script_file import ScriptFile
@@ -40,3 +40,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+'''

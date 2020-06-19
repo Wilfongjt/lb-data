@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 import shutil
 import json
 class AppSettings():
+    '''
+    production folders under ~/<work-folder-name>
+    '''
     def __init__(self):
         #~/<work-folder-name>/projects/<project-name>/
 
@@ -19,9 +22,9 @@ class AppSettings():
         os.environ['LB_POSTGRES_PASSWORD'] = self.lbpostgres_password = os.getenv('LB_POSTGRES_PASSWORD') or self.lbjwt_password
         os.environ['LB_SECRET_PASSWORD'] = self.lbsecret_password = os.getenv('LB_SECRET_PASSWORD') or self.lbjwt_password
         os.environ['LB_WEB_PASSWORD'] = self.lbweb_password = os.getenv('LB_WEB_PASSWORD') or self.lbjwt_password
-        #os.environ['LB_WEB_GUEST_PASSWORD'] = self.lbweb_guest_password = os.getenv('LB_WEB_GUEST_PASSWORD') or self.lbjwt_password
+        #os.environ['LB_WEB_GUEST_PASSWORD'] = self.lbweb_anonymous_password = os.getenv('LB_WEB_GUEST_PASSWORD') or self.lbjwt_password
         os.environ['LB_ADMIN_PASSWORD'] = self.lbadmin_password = os.getenv('LB_ADMIN_PASSWORD') or self.lbjwt_password
-        os.environ['LB_ADMIN_GUEST_PASSWORD'] = self.lbadmin_guest_password = os.getenv('LB_ADMIN_GUEST_PASSWORD') or self.lbjwt_password
+        os.environ['LB_ADMIN_GUEST_PASSWORD'] = self.lbadmin_anonymous_password = os.getenv('LB_ADMIN_GUEST_PASSWORD') or self.lbjwt_password
         os.environ['LB_ADMIN_REGISTRAR_PASSWORD'] = self.lbadmin_registrar_password = os.getenv('LB_ADMIN_REGISTRAR_PASSWORD') or self.lbjwt_password
 
         ######### PROJECT
@@ -49,24 +52,20 @@ class AppSettings():
         #os.environ['LB_APP_PREFIX']=self.lbapp_prefix = os.getenv('LB_APP_PREFIX') or self.lb_project['prefix']
         #
         os.environ['LB_REGISTER_JWT'] = os.getenv('LB_REGISTER_JWT') or '{"name":"jwt@register.com","password":"?1?!????","role":"jwt"}'
-        os.environ['LB_REGISTER_GUEST'] = os.getenv('LB_REGISTER_GUEST') or '{"name":"guest@register.com","password":"?1?!????","role":"guest"}'
+        os.environ['LB_REGISTER_ANONYMOUS'] = os.getenv('LB_REGISTER_ANONYMOUS') or '{"name":"anonymous@register.com","password":"?1?!????","role":"anonymous"}'
         os.environ['LB_REGISTER_EDITOR'] = os.getenv('LB_REGISTER_EDITOR') or '{"name":"editor@register.com","password":"?1?!????","role":"editor"}'
         os.environ['LB_REGISTER_REGISTRAR'] = os.getenv('LB_REGISTER_REGISTRAR') or '{"name":"registrar@register.com","password":"?1?!????","role":"registrar"}'
 
         self.lbregister_jwt = json.loads(os.environ['LB_REGISTER_JWT'])
-        self.lbregister_guest = json.loads(os.environ['LB_REGISTER_GUEST'])
+        self.lbregister_anonymous = json.loads(os.environ['LB_REGISTER_GUEST'])
         self.lbregister_editor = json.loads(os.environ['LB_REGISTER_EDITOR'])
         self.lbregister_registrar = json.loads(os.environ['LB_REGISTER_REGISTRAR'])
 
-
-        #os.environ['LB_WEB_GUEST']=self.lbweb_guest=os.getenv('LB_WEB_GUEST') or '{"name":"guest@test.com","password":"g1G!gggg","role":"guest"}'
-        #self.lbweb_guest=json.loads(self.lbweb_guest)
-        #print('lbweb_guest', self.lbweb_guest , type(self.lbweb_guest ))
-        os.environ['LB_WEB_GUEST_PASSWORD']=self.lbapp_guest_password = os.getenv('LB_WEB_GUEST_PASSWORD') or '?1?!????'
+        os.environ['LB_WEB_GUEST_PASSWORD']=self.lbapp_anonymous_password = os.getenv('LB_WEB_GUEST_PASSWORD') or '?1?!????'
         os.environ['LB_ADMIN_REGISTRAR_NAME']=self.lbapp_registrar_name= os.getenv('LB_ADMIN_REGISTRAR_NAME') or self.lb_git['owner']
         os.environ['LB_ADMIN_REGISTRAR_PASSWORD'] = self.lbapp_registrar_password = os.getenv('LB_ADMIN_REGISTRAR_PASSWORD') or '?1?!????'
 
-        os.environ['LB_WEB_GUEST_ROLE'] = self.lbweb_guest_role = os.getenv('LB_WEB_GUEST_ROLE') or 'guest'
+        os.environ['LB_WEB_GUEST_ROLE'] = self.lbweb_anonymous_role = os.getenv('LB_WEB_ANONYMOUS_ROLE') or 'anonymous'
 
         ######### DATABASE
         os.environ['LB_DATA_FOLDER_NAME']=self.lbdata_folder_name = os.getenv('LB_DATA_FOLDER_NAME') or '.data'
@@ -79,15 +78,10 @@ class AppSettings():
 
         ######### Code
         self.lbcode_folder = os.getenv('LB_CODE_FOLDER') or '{}/{}/code'.format(self.getHomeFolder(), self.lbworking_name)
-
         self.working_folder_name = '{}'.format(self.lbworking_name)
         self.project_folder_name = '{}-{}'.format(self.lb_project['name'], self.lbenv)
 
-        #self.umbrella_folder_name = '01-{}'.format(self.lbgit_project)
-        #print('lbgit_project folder', self.lbgit_project)
-
         self.umbrella_folder_name = '01-{}'.format(self.lb_git['name'])
-        #print('umbrella folder', self.umbrella_folder_name)
         if not Util().folder_exists(self.lbcode_folder):
             Util().createFolder(self.lbcode_folder)
 
@@ -137,6 +131,27 @@ class AppSettings():
     def getHomeFolder(self):
         return str(Path.home())
 
+    def getAppFolder(self):
+        '''
+               returns path to resource folder in the source code
+               suffix can be a folder name or a file name
+               '''
+        rc = os.getcwd()
+        print('cwd',rc)
+
+        if rc.endswith('_app'):
+            return rc
+        else:
+            rc = '{}/_app'.format(rc)
+
+        #if rc.endswith('_app'):
+        #    rc = rc.replace('_app', '_res')
+
+        #if suffix != None:
+        #    rc = '{}/{}'.format(rc, suffix)
+        print('getAppFolder', rc)
+        return rc
+
     def getResourceFolder(self, suffix=None):
         '''
         returns path to resource folder in the source code
@@ -179,6 +194,10 @@ class AppSettings():
         deletes a project, folder by folder
         will not delete folder with files
         '''
+        if 1==1:
+            print('removeFolders is diabled')
+            return self
+
         #iterate through all the childern folders of the project
         for key in self.getProjectFolders():
             del_list = []
@@ -262,7 +281,8 @@ class AppSettings():
             raise Exception('resource-folder')
 
         elif key == 'shared-folder':
-            rc = '{}/{}/shared'.format(self.getHomeFolder(), self.working_folder_name).replace('//', '/')
+            rc = self.getResourceFolder('shared')
+            #rc = '{}/{}/shared'.format(self.getHomeFolder(), self.working_folder_name).replace('//', '/')
 
         elif key == 'projects-folder':
             # ~/<work-folder-name>/projects
@@ -289,20 +309,44 @@ class AppSettings():
 
         return rc
 
+    def to_interface(self, filename, interface, api_method):
+        parts = filename.split('.')
+        if len(parts) != 4:
+            raise Exception('to_interface expects a 4 part file name not {}'.format(filename))
+
+        return '{}.{}.{}.{}'.format( '{}-{}'.format(parts[0],interface), 'interface-{}'.format( api_method), parts[2], 'json')
+
     def to_api(self, filename, api_method):
         parts = filename.split('.')
         if len(parts) != 4:
             raise Exception('to_api expects a 4 part file name not {}'.format(filename))
 
         return '{}.{}.{}.{}'.format( parts[0], 'table-api-{}'.format(api_method), parts[2], 'json')
+    '''
+        def to_api(self, filename, api_method):
+        parts = filename.split('.')
+        if len(parts) != 4:
+            raise Exception('to_api expects a 4 part file name not {}'.format(filename))
+
+        return '{}.{}.{}.{}'.format( parts[0], 'table-api-{}'.format(api_method), parts[2], 'json')
+
+    '''
+    def to_test(self, filename, test_method):
+        parts = filename.split('.')
+        if len(parts) != 4:
+            raise Exception('to_test expects a 4 part file name not {}'.format(filename))
+
+        return '{}.{}.{}.{}'.format(parts[0], 'table-{}-test'.format(test_method), parts[2], 'json')
 
     def to_tmpl(self, filename, source_key='temp-lates-folder'):
         parts = filename.split('.')
+        #print('app_settings', parts)
         if len(parts) != 4:
             raise Exception('to_tmpl expects a 4 part file name not {}'.format(filename))
         # return self.file_name_to(filename, 'tmpl')
-        # print('to_cmpl', '{}.{}.{}.{}'.format(parts[0], parts[1], parts[2], 'tmpl'))
+        #print('to_tmpl', '{}.{}.{}.{}'.format(parts[0], parts[1], parts[2], 'tmpl'))
         f = '{}.{}.{}.{}'.format(parts[0], parts[1], parts[2], 'tmpl')
+        # print('source key', source_key,self.getFolder(source_key))
         if Util().file_exists(self.getFolder(source_key), f):
             return '{}.{}.{}.{}'.format(parts[0], parts[1], parts[2], 'tmpl')
         return '{}.{}.{}'.format( parts[1], parts[2], 'tmpl')
@@ -403,6 +447,10 @@ class AppSettings():
                 rc = '{}.{}.{}.{}'.format(name, type, database, to_type)
             elif to_type == 'tmpl-compiled-merged':
                 rc = '{}.{}.{}.{}'.format(name, type, database, to_type)
+            elif to_type == 'interface-select':
+                rc = '{}.{}.{}.{}'.format(name, to_type, database, end)
+            elif to_type == 'interface-upsert':
+                rc = '{}.{}.{}.{}'.format(name, to_type, database, end)
             elif to_type == 'table-api-select':
                 rc = '{}.{}.{}.{}'.format(name, to_type, database, end)
             elif to_type == 'table-api-update':
@@ -479,10 +527,13 @@ class AppSettingsTest(AppSettings):
     '''
     use for testing
     reroutes the dev
-
+    '''
+    '''
+    dev folders under ~/<work-folder-name>/testing 
     '''
     def __init__(self):
         super().__init__()
+        #print('Using AppSettingsTest')
         self.lbcode_folder = os.getenv('LB_CODE_FOLDER') or '{}/{}/testing/code'.format(self.getHomeFolder(), self.lbworking_name)
 
         #self.lbcode_folder = os.getenv('LB_CODE_FOLDER') or '{}/{}/testing/code/01-{}/{}'.format(self.getHomeFolder(), self.lbworking_name, self.lbproject_name, self.lbproject_name)
@@ -521,7 +572,8 @@ class AppSettingsTest(AppSettings):
             raise Exception('resource-folder')
 
         elif key == 'shared-folder':
-            rc = '{}/{}/testing/shared'.format(self.getHomeFolder(), self.working_folder_name).replace('//', '/')
+            rc = self.getResourceFolder('shared')
+            #rc = '{}/{}/testing/shared'.format(self.getHomeFolder(), self.working_folder_name).replace('//', '/')
 
         elif key == 'projects-folder':
             # ~/<work-folder-name>/projects
@@ -547,12 +599,11 @@ class AppSettingsTest(AppSettings):
                                             ).replace('//', '/')
 
         return rc
-
+    '''
     def removeFolders(self):
-        '''
-        remove all files and folders in the testing folder
-        :return:
-        '''
+        
+        #remove all files and folders in the testing folder
+        
 
         dir_path = self.getFolder('testing-folder')
         if not Util().folder_exists(dir_path):
@@ -568,7 +619,7 @@ class AppSettingsTest(AppSettings):
         except OSError as e:
             print("Error: %s : %s" % (dir_path, e.strerror))
         return self
-
+    '''
 
 
 def main():
@@ -601,6 +652,9 @@ def main():
     print('  - project_folder_name |', project_folder_name, appSettings.project_folder_name)
     print('  - resource-folder     |', appSettings.getResourceFolder())
     print('  - projectFolders      |', appSettings.getProjectFolders())
+
+    print('metho', appSettings.to_interface('register.table.pg.json','app', 'upsert'))
+    assert( appSettings.to_interface('register.table.pg.json','app', 'upsert') == 'register-app.interface-upsert.pg.json')
 
     assert( appSettings.lbenv in ['dev','test'])
     assert( appSettings.lbworking_name == lbworking_name)
@@ -637,10 +691,11 @@ def main():
 
     #print('               ', '{}/{}/projects/{}/temp'.format(str(Path.home()), working_folder_name, project_folder_name ).replace('//','/'))
     assert(appSettings.getFolder('temp-folder') == '{}/{}/testing/temp'.format(str(Path.home()), working_folder_name, project_folder_name ).replace('//','/'))
-
-    print('  - shared-folder',  '{}/{}/testing/shared'.format(str(Path.home()),working_folder_name).replace('//', '/'),appSettings.getFolder('shared-folder'))
+    print('  - shared-folder', appSettings.getResourceFolder('shared'))
+    #print('  - shared-folder',  '{}/{}/shared'.format(str(Path.home()),working_folder_name).replace('//', '/'),appSettings.getFolder('shared-folder'))
     #print('                 ', '{}/{}/shared'.format(str(Path.home()),working_folder_name).replace('//', '/'))
-    assert (appSettings.getFolder('shared-folder') == '{}/{}/testing/shared'.format(str(Path.home()),working_folder_name).replace('//', '/'))
+    #assert (appSettings.getFolder('shared-folder') == '{}/{}/testing/shared'.format(str(Path.home()),working_folder_name).replace('//', '/'))
+    #assert (appSettings.getFolder('shared-folder') == '{}/{}/shared'.format(str(Path.home()),working_folder_name).replace('//', '/'))
 
     print('  - projects-folder',  '{}/{}/testing/projects'.format(str(Path.home()),working_folder_name).replace('//', '/'),appSettings.getFolder('projects-folder'))
     assert (appSettings.getFolder('projects-folder') == '{}/{}/testing/projects'.format(str(Path.home()),working_folder_name).replace('//', '/'))
@@ -667,15 +722,15 @@ def main():
     #assert( appSettings.file_name_to('users.db-api-table-table.pg.json._DEP', 'tmpl') == 'users.db-api-table-table.pg.tmpl')
     #assert( appSettings.to_tmpl('users.db-api-table-table.pg.json._DEP') == 'db-api-table-table.pg.tmpl') gets generated
     #assert( appSettings.to_tmpl('users.db-api-table-table.pg.tmpl') == 'db-api-table-table.pg.tmpl') gets generated
-    #assert( appSettings.to_tmpl('users.db-api-table-table-api-select.pg.json') == 'db-api-table-table-api-select.pg.tmpl')
-    #assert( appSettings.to_tmpl('users.db-api-table-table-api-update.pg.json') == 'db-api-table-table-api-update.pg.tmpl')
-    #assert( appSettings.to_tmpl('users.db-api-table-table-api-insert.pg.json') == 'db-api-table-table-api-insert.pg.tmpl')
+    #assert( appSettings.to_tmpl('users.db-api-table-table-api-select.pg.json') == 'db-api-table-dep.table-api-select.pg.tmpl.dep')
+    #assert( appSettings.to_tmpl('users.db-api-table-table-api-update.pg.json') == 'db-api-table-dep.table-api-update.pg.tmpl.dep')
+    #assert( appSettings.to_tmpl('users.db-api-table-table-api-insert.pg.json') == 'db-api-table-dep.table-api-insert.pg.tmpl.dep')
     #print('to_tmpl',appSettings.to_tmpl('credentials.table.pg.json._DEP'))
     #assert (appSettings.to_tmpl('credentials.db-api-table-table.pg.json._DEP') == 'db-api-table-table.pg.tmpl')
     #assert (appSettings.to_tmpl('credentials.db-api-table-table.pg.tmpl._DEP') == 'db-api-table-table.pg.tmpl')
-    #assert (appSettings.to_tmpl('credentials.db-api-table-table-api-select.pg.json') == 'db-api-table-table-api-select.pg.tmpl')
-    #assert (appSettings.to_tmpl('credentials.db-api-table-table-api-update.pg.json') == 'db-api-table-table-api-update.pg.tmpl')
-    #assert (appSettings.to_tmpl('credentials.db-api-table-table-api-insert.pg.json') == 'db-api-table-table-api-insert.pg.tmpl')
+    #assert (appSettings.to_tmpl('credentials.db-api-table-table-api-select.pg.json') == 'db-api-table-dep.table-api-select.pg.tmpl.dep')
+    #assert (appSettings.to_tmpl('credentials.db-api-table-table-api-update.pg.json') == 'db-api-table-dep.table-api-update.pg.tmpl.dep')
+    #assert (appSettings.to_tmpl('credentials.db-api-table-table-api-insert.pg.json') == 'db-api-table-dep.table-api-insert.pg.tmpl.dep')
 
     #filelist = Util().getFileName(appSettings.getFolder('con-fig-folder'))
     #for fn in filelist:
@@ -686,24 +741,24 @@ def main():
     '''
     assert(appSettings.to_cmpl('users.db-api-table-table.pg.json._DEP') == 'users.db-api-table-table.pg.tmpl')
     assert(appSettings.to_cmpl('users.db-api-table-table.pg.tmpl') == 'users.db-api-table-table.pg.tmpl')
-    assert (appSettings.to_cmpl('users.db-api-table-table-api-select.pg.json') == 'users.db-api-table-table-api-select.pg.tmpl')
-    assert (appSettings.to_cmpl('users.db-api-table-table-api-update.pg.json') == 'users.db-api-table-table-api-update.pg.tmpl')
-    assert (appSettings.to_cmpl('users.db-api-table-table-api-insert.pg.json') == 'users.db-api-table-table-api-insert.pg.tmpl')
+    assert (appSettings.to_cmpl('users.db-api-table-table-api-select.pg.json') == 'users.db-api-table-dep.table-api-select.pg.tmpl.dep')
+    assert (appSettings.to_cmpl('users.db-api-table-table-api-update.pg.json') == 'users.db-api-table-dep.table-api-update.pg.tmpl.dep')
+    assert (appSettings.to_cmpl('users.db-api-table-table-api-insert.pg.json') == 'users.db-api-table-dep.table-api-insert.pg.tmpl.dep')
 
     assert (appSettings.to_cmpl('credentials.db-api-table-table.pg.json._DEP') == 'credentials.db-api-table-table.pg.tmpl._DEP')
     assert (appSettings.to_cmpl('credentials.db-api-table-table.pg.tmpl._DEP') == 'credentials.db-api-table-table.pg.tmpl._DEP')
-    assert (appSettings.to_cmpl('credentials.db-api-table-table-api-select.pg.json') == 'credentials.db-api-table-table-api-select.pg.tmpl._DEP')
-    assert (appSettings.to_cmpl('credentials.db-api-table-table-api-update.pg.json') == 'credentials.db-api-table-table-api-update.pg.tmpl._DEP')
-    assert (appSettings.to_cmpl('credentials.db-api-table-table-api-insert.pg.json') == 'credentials.db-api-table-table-api-insert.pg.tmpl._DEP')
+    assert (appSettings.to_cmpl('credentials.db-api-table-table-api-select.pg.json') == 'credentials.db-api-table-dep.table-api-select.pg.tmpl.dep._DEP')
+    assert (appSettings.to_cmpl('credentials.db-api-table-table-api-update.pg.json') == 'credentials.db-api-table-dep.table-api-update.pg.tmpl.dep._DEP')
+    assert (appSettings.to_cmpl('credentials.db-api-table-table-api-insert.pg.json') == 'credentials.db-api-table-dep.table-api-insert.pg.tmpl.dep._DEP')
 
     assert (appSettings.to_merged('credentials.db-api-table-table.pg.json._DEP') == 'credentials.db-api-table-table.pg.tmpl._DEP')
     assert (appSettings.to_merged('credentials.db-api-table-table.pg.tmpl._DEP') == 'credentials.db-api-table-table.pg.tmpl._DEP')
     assert (appSettings.to_merged(
-        'credentials.db-api-table-table-api-select.pg.json') == 'credentials.db-api-table-table-api-select.pg.tmpl._DEP')
+        'credentials.db-api-table-table-api-select.pg.json') == 'credentials.db-api-table-dep.table-api-select.pg.tmpl.dep._DEP')
     assert (appSettings.to_merged(
-        'credentials.db-api-table-table-api-update.pg.json') == 'credentials.db-api-table-table-api-update.pg.tmpl._DEP')
+        'credentials.db-api-table-table-api-update.pg.json') == 'credentials.db-api-table-dep.table-api-update.pg.tmpl.dep._DEP')
     assert (appSettings.to_merged(
-        'credentials.db-api-table-table-api-insert.pg.json') == 'credentials.db-api-table-table-api-insert.pg.tmpl._DEP')
+        'credentials.db-api-table-table-api-insert.pg.json') == 'credentials.db-api-table-dep.table-api-insert.pg.tmpl.dep._DEP')
     '''
     # function
     #assert (appSettings.to_tmpl('get_id.function.pg.json') == 'get_id.function.pg.tmpl')
@@ -716,11 +771,14 @@ def main():
     assert( appSettings.to_tmpl('users.db-api-table-table.pg.tmpl.compiled') == 'users.db-api-table-table.pg.tmpl')
 
     assert( appSettings.to_tmpl('users.db-api-table-table.pg.tmpl.compiled.merged') == 'users.db-api-table-table.pg.tmpl')
-    assert( appSettings.to_tmpl('name.db-api-table-table-api-update.pg.json') == 'name.db-api-table-table-api-update.pg.tmpl')
+    assert( appSettings.to_tmpl('name.db-api-table-table-api-update.pg.json') == 'name.db-api-table-dep.table-api-update.pg.tmpl.dep')
     assert( appSettings.to_tmpl('anonymous.role-create.pg.json') == 'anonymous.role-create.pg.tmpl._DEP')
     assert( appSettings.to_tmpl('get_id.function.pg.json') == 'get_id.function.pg.tmpl')
     '''
+
+    print('getAppFolder', appSettings.getAppFolder())
     #appSettings.removeFolders()
+    os.environ['LB-TESTING'] = '0'
 if __name__ == "__main__":
     main()
 

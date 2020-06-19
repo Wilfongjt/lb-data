@@ -14,15 +14,22 @@ class ProjectMoveToSQL(Step):
 
         self.description = ['Rename any file ending in .merged to .sql ',
                             'Control execution of sql by adding numeric prefix',
-                            'Overwrites template file with sql file'
+                            'Overwrites template file with sql file',
+                            'Removes files from expanded folder'
                             ]
+        #  'table-api-test': {'prefix': '99', 'ext': 'sql'},
         self.type_map = {
             'database': {'prefix': '01', 'ext': 'sql'},
             'role': {'prefix': '03', 'ext': 'sql'},
             'validate-function': {'prefix': '04', 'ext': 'sql'},
             'table': {'prefix': '05', 'ext': 'sql'},
             'function': {'prefix': '07', 'ext': 'sql'},
+
             'table-api-upsert': {'prefix': '09', 'ext': 'sql'},
+            'interface-upsert': {'prefix': '09', 'ext': 'sql'},
+            'interface-select': {'prefix': '09', 'ext': 'sql'},
+            'interface-test': {'prefix': '99', 'ext': 'sql'},
+
             'table-api-insert': {'prefix': '09', 'ext': 'sql'},
             'table-api-update': {'prefix': '09', 'ext': 'sql'},
             'table-api-select': {'prefix': '09', 'ext': 'sql'},
@@ -142,11 +149,17 @@ class ProjectMoveToSQL(Step):
                 os.system('ls -l {}'.format(toname))
                 os.chmod(toname, 0o755) # -rwxr-xr-x
                 os.system('ls -l {}'.format(toname))
-
+        #self.cleanup()
         return self
-
-    #def delete(self, folder, filename):
-
+    '''
+    def cleanup(self):
+        expanded_folder = self.appSettings.getFolder('expanded-folder')
+        filelist = Util().getFolderList(expanded_folder)
+        for f in filelist:
+            print('file', f)
+            #Util().deleteFolder(expanded_folder)
+        return self
+    '''
 def main():
     from app_settings import AppSettingsTest
     #from project_expand import ProjectExpand
@@ -179,7 +192,9 @@ def main():
         .add(ProjectMerge())\
         .add(step)\
         .run()
-
+    '''
+    
+    '''
     #print('* {}'.format(step.getClassName()))
     #print('  - {}'.format(step.getDescription()))
 

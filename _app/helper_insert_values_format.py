@@ -1,9 +1,10 @@
-
+"""
 from helper import Helper
 from app_settings import AppSettings
 import json
+from list_fields import FieldList
 
-class HelperInsertValuesFormat(Helper):
+class depHelperInsertValuesFormat(Helper):
     def __init__(self, step=None):
         super().__init__(step)
 
@@ -13,7 +14,12 @@ class HelperInsertValuesFormat(Helper):
     def set_dictionary(self, table_dictionary ):
         self.dictionary = table_dictionary
         return self
-
+    ''' 
+    def getFields(self):
+        return [f for f in self.dictionary['fields']
+                if 'crud' in f
+                and ('c' in f['crud'] or 'C' in f['crud'])]
+    '''
     def format(self):
 
         self.process()
@@ -25,79 +31,33 @@ class HelperInsertValuesFormat(Helper):
         if self.dictionary == None:
             raise Exception('Table Dictionary is not set!')
 
+        #field_values = ['_{}'.format(f['name'])
+        #                for f in self.dictionary['fields'] if 'crud' in f and 'c' in f['crud']]
+
         field_values = ['_{}'.format(f['name'])
-                        for f in self.dictionary['fields'] if 'crud' in f and 'c' in f['crud']]
+                        for f in FieldList(self.dictionary, ['c','C','F'])]
+
         self.lines.append('                {}'.format(', '.join(field_values)))
 
         return self
 
-def test_table():
-    return {
-        "type": "table",
-        "tbl-name": "test",
-        "tbl-prefix": "tst",
-        "tbl-role": "guest",
-        "api-overwrite": "0",
-        "api-name": "test",
-        "api-table": "test",
-        "api-methods": ["upsert", "select"],
-
-        "fields": [{
-            "name": "id",
-            "context": "pk",
-            "type": "INTEGER",
-            "crud": "r"
-        }, {
-            "name": "app_name",
-            "context": "name",
-            "type": "TEXT",
-            "crud": "cru",
-            "json": "cru"
-        }, {
-            "name": "version",
-            "context": "version",
-            "type": "TEXT",
-            "crud": "cru",
-            "default": "1.0.0",
-            "json": "cru"
-        },{
-            "name": "token",
-            "context": "token",
-            "type": "TEXT",
-            "json": "cru"
-        },{
-            "name": "row",
-            "context": "row",
-            "description": "JSON record",
-            "type": "JSONB",
-            "crud": "cru"
-        },{
-            "name": "created",
-            "context": "created",
-            "type": "timestamp",
-            "crud": "r"
-        }, {
-            "name": "updated",
-            "context": "updated",
-            "type": "timestamp",
-            "crud": "r"
-        }, {
-            "name": "active",
-            "context": "active",
-            "type": "BOOLEAN",
-            "default": "true",
-            "crud": "r"
-        }],
-        "db-prefix":"db"
-
-    }
 def main():
     import pprint
-    lines = HelperInsertValuesFormat().set_dictionary(test_table()).format()
+    from test_func import test_table
+    import os
+    os.environ['LB-TESTING'] = '1'
+    helper = HelperInsertValuesFormat().set_dictionary(test_table())
 
+    #print('fields', [f['name'] for f in FieldList()])
+    #assert [f['name'] for f in helper.getFields()] == ['type', 'password', 'attributes']
+
+    lines = helper.format()
     assert (type(lines)==list) # is a list
-
+    #print('lines', lines)
+    assert lines == ['                _type, _form, _password']
     #pprint.pprint(lines)
     print('\n'.join(lines))
+    os.environ['LB-TESTING'] = '0'
 if __name__ == "__main__":
     main()
+"""

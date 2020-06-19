@@ -1,9 +1,30 @@
-
-from helper import Helper
+"""
+#from helper import Helper
 from app_settings import AppSettings
 import json
 
-class Templatize(Helper):
+class dep_TemplatizedLine(list):
+    '''
+    Merges a single template line with configuration values
+    '''
+    def __init__(self, dictionary, template_line):
+        self.dictionary = dictionary
+        self.template_line = template_line
+        self.process()
+
+    def process(self):
+        if '[[' in self.template_line :
+            for key_ in self.dictionary:
+                v = self.dictionary[key_]
+                if type(v) != list and type(v) != dict:
+                    #print('process key', key_, ' v ', v)
+                    self.template_line = self.template_line.replace('[[{}]]'.format(key_), v)
+
+        self.append(self.template_line)
+
+        return self
+
+class dep_Templatize(Helper):
     def __init__(self, step=None):
         super().__init__(step)
 
@@ -25,96 +46,40 @@ class Templatize(Helper):
 
     def process(self):
         # tempatize
+        #print('process', self.dictionary)
         for key_ in self.dictionary:
             v = self.dictionary[key_]
-            if type(v) != list:
+            if type(v) != list and type(v) != dict:
+                #print('process key', key_, ' v ', v)
                 self.template = self.template.replace('[[{}]]'.format(key_), v)
         self.lines.append(self.template)
         return self
 
-def test_table():
-    return {
-        "type": "table",
-        "tbl-name": "test",
-        "tbl-prefix": "tst",
-        "tbl-role": "guest",
-        "api-overwrite": "0",
-        "api-name": "test",
-        "api-table": "test",
-        "api-methods": ["upsert", "select"],
-
-    "fields": [{
-            "name": "id",
-            "context": "pk",
-            "type": "INTEGER",
-            "crud": "r",
-            "json": "ru"
-        },{
-            "name": "username",
-            "context": "email",
-            "type": "TEXT",
-            "crud": "cru",
-            "json": "cru",
-            "search": "confirm-token-username"
-        },{
-            "name": "email",
-            "context": "email",
-            "type": "TEXT",
-            "json": "cru"
-        },{
-            "name": "password",
-            "context": "password",
-            "description": "Passwords are stored in table row, but not in json row",
-            "type": "TEXT",
-            "crud": "cru",
-            "json": ""
-        },{
-            "name": "roles",
-            "context": "roles",
-            "description": "User can have multiple roles",
-            "type": "JSONB",
-            "default": ["registrant"],
-            "crud": "",
-            "json": "cr"
-        },{
-            "name": "row",
-            "context": "row",
-            "description": "json to define role access to multiple apps.",
-            "type": "JSONB",
-            "crud": "cru"
-        },{
-            "name": "created",
-            "context": "created",
-            "type": "TIMESTAMP",
-            "crud": "r"
-        },{
-            "name": "updated",
-            "context": "updated",
-            "type": "TIMESTAMP",
-            "crud": "r"
-        },{
-            "name": "active",
-            "context": "active",
-            "type": "BOOLEAN",
-            "default": "true",
-            "crud": "r",
-            "json": "ru"
-
-        }]
-        ,
-        "db-prefix":"db"
-
-    }
 
 def main():
+    from test_func import test_table
+
     import pprint
+    import os
+
+    os.environ['LB-TESTING'] = '1'
+
     tmpl = Templatize().set_dictionary(test_table()).templatize('im a little ([[tbl-name]]) template ')
     assert (type(tmpl)==str) # is a list
     print(tmpl)
 
-    tmpl = Templatize().set_dictionary(test_table()['fields'][0]).templatize('im a little ([[name]]) template ')
+    tmpl = Templatize()\
+        .set_dictionary(test_table()['tbl-fields'][0])\
+        .templatize('im a [[tbl-prefix]] little ([[name]]) template ')
     assert (type(tmpl) == str)  # is a list
     print(tmpl)
 
+    print('TemplatizedLine', TemplatizedLine(test_table(),'passthrough'))
+    assert TemplatizedLine(test_table(),'passthrough') == ['passthrough']
+    assert TemplatizedLine(test_table(),'[[tbl-name]]') == ['register']
+
+    os.environ['LB-TESTING'] = '0'
+
 if __name__ == "__main__":
     main()
+"""

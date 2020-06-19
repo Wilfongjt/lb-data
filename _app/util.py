@@ -160,7 +160,9 @@ class Util():
 def main():
     from app_settings import AppSettingsTest
     from dotenv import load_dotenv
+    import os
 
+    os.environ['LB-TESTING'] = '1'
     load_dotenv()
 
     env_folder = Util().getResourceProjectFolder()
@@ -186,5 +188,7 @@ def main():
     #working_folder_name_default = 'example'
     folderlist = Util().getFolderList(env_folder)
     print('folderlist', folderlist)
+    os.environ['LB-TESTING'] = '0'
+
 if __name__ == "__main__":
     main()

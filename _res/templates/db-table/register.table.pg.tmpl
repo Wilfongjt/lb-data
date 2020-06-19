@@ -1,26 +1,37 @@
 ---- SET DB
-\c [[db-prefix]]_db
+\c [[LB_DB_PREFIX]]_db
 -- TABLE
 create table if not exists
-[[db-prefix]]_schema.[[tbl-name]] (
-  [[fields]]
+[[LB_DB_PREFIX]]_schema.[[tbl-name]] (
+  <<table-fields>>
 );
 
--- INDEX
-CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[db-prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id int4_ops);
+-- INDEXxxx
+CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
 
+--CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id text_pattern_ops);
+--CREATE UNIQUE INDEX [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
 -- TRIGGER FUNCTION
 CREATE OR REPLACE FUNCTION [[tbl-prefix]]_ins_upd_trigger_func() RETURNS trigger
 AS $$
+Declare _token TEXT;
+Declare _custom JSON;
+Declare _form JSONB;
+Declare _password TEXT;
 BEGIN
    -- create application token
     IF (TG_OP = 'INSERT') THEN
-        NEW.[[tbl-prefix]]_token = sign(format('{"app_name":"%s",
-          "version":"%s",
-          "role":"registrar"}',
-          NEW.[[tbl-prefix]]_app_name,
-          NEW.[[tbl-prefix]]_version)::json,
-          current_setting('app.jwt_secret'), 'HS256'::text);
+        NEW.[[tbl-prefix]]_id := format('%s@%s',NEW.[[tbl-prefix]]_form ->> 'app-name',NEW.[[tbl-prefix]]_form ->> 'version');
+        _custom := format('{"app-name":"%s", "version":"%s", "role":"registrar"}',
+                    NEW.[[tbl-prefix]]_form ->> 'app-name',
+                    NEW.[[tbl-prefix]]_form ->> 'version')::JSON;
+        _token := sign( _custom::JSON, current_setting('app.jwt_secret'),  'HS256'::text);
+        _form := format('{"token": "%s"}',_token)::JSONB;
+
+        NEW.[[tbl-prefix]]_form := NEW.[[tbl-prefix]]_form || _form;
+
+        NEW.[[tbl-prefix]]_password := crypt(NEW.[[tbl-prefix]]_password, gen_salt('bf'));
+
     ELSEIF (TG_OP = 'UPDATE') THEN
 
        NEW.[[tbl-prefix]]_updated := CURRENT_TIMESTAMP;
@@ -34,7 +45,7 @@ END; $$ LANGUAGE plpgsql;
 
 -- TRIGGER
 CREATE TRIGGER [[tbl-prefix]]_ins_upd_trigger
- BEFORE INSERT ON [[db-prefix]]_schema.[[tbl-name]]
+ BEFORE INSERT ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]
  FOR EACH ROW
  EXECUTE PROCEDURE [[tbl-prefix]]_ins_upd_trigger_func();
 
