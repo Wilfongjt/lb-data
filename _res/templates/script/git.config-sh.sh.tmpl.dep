@@ -1,0 +1,8 @@
+# name: lb-data
+# download no: 1
+# issue no: 07
+# comment: 
+export GIT_BRANCH=[[LB_PROJECT_branch]]
+export GIT_PROJECT=[[LB_PROJECT_name]]
+export GIT_PREFIX=pg
+export GIT_OWNERNAME=[[LB_PROJECT_owner]]

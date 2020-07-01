@@ -35,7 +35,7 @@
     "search-context": {
         "key-pattern-1": "<key-value>",
         "key-pattern-2": "<context>-<type>",
-        "confirm-token-username": "[[tbl-prefix]]_[[name]]=[[LB_DB_PREFIX]]_schema.get_username(_token)::TEXT",
+        "confirm-token-username": "[[tbl-prefix]]_[[name]]=[[LB_PROJECT_prefix]]_schema.get_username(_token)::TEXT",
         "confirm-id": "[[tbl-prefix]]_[[name]]= cast(_json::jsonb ->> '[[name]]' as integer)",
         "uuid": "[[tbl-prefix]]_[[name]]= cast(_json::jsonb ->> '[[name]]' as UUID)",
         "pk-UUID": "[[tbl-prefix]]_[[name]]= cast(_json::jsonb ->> '[[name]]' as UUID)",

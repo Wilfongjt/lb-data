@@ -18,7 +18,7 @@ class Template_InterfaceTest(Template):
 
     def getTemplateList(self):
         return ''''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 select '##### [[tbl-name]] TESTS';
 BEGIN;
@@ -30,9 +30,9 @@ BEGIN;
   select '############ INSERT need to write this test'
   */
   SELECT is (
-    [[LB_DB_PREFIX]]_schema.[[api-name]](
+    [[LB_PROJECT_prefix]]_schema.[[api-name]](
       sign('{"username":"testuser@register.com","role":"[[api-role]]"}'::json, current_setting('app.jwt_secret')),
-      '{"type": "[[api-name]]", "app-id": "my-app", "version": "[[api-version]]", "username": "abc@xyx.com", "password": "t1T!tttt"}'::JSONB
+      '{"type": "[[api-name]]", "app_id": "my-app", "version": "[[api-version]]", "username": "abc@xyx.com", "password": "t1T!tttt"}'::JSONB
       '[[api-test-forms.type:insert.{{form}}]]'::JSONB
     )::JSONB,
     '{"result": "1"}'::JSONB,

@@ -66,6 +66,7 @@ class ProjectMoveToSQL(Step):
         sql_folder = self.appSettings.getFolder('sql-folder')
 
         script_folder = self.appSettings.getFolder('script-folder')
+        umbrella_folder = self.getUmbrellaFolder()
 
         self.log('  - {}    {}'.format('env-file', self.appSettings.getFolder('env-file')))
         self.log('  - {} {}'.format('code-folder', code_folder))
@@ -125,7 +126,11 @@ class ProjectMoveToSQL(Step):
                                                fn.replace('.script-sh.sh.tmpl', ''),
                                                self.getExt(fn))
 
-
+            elif 'config-sh' == parts[1] :
+                    fromname = '{}/{}'.format(mrgd_folder, fn)
+                    toname = '{}/{}.{}'.format(umbrella_folder,
+                                               fn.replace('.config-sh.sh.tmpl', '.config.sh'),
+                                               self.getExt(fn))
             #elif 'initialize' == parts[1] :
             #        fromname = '{}/{}'.format(mrgd_folder, fn)
             #        toname = '{}/{}.{}'.format(sql_folder,
@@ -143,12 +148,13 @@ class ProjectMoveToSQL(Step):
             #print('toname',toname)
 
             os.rename(fromname, toname)
-            if 'script' in fn:
+            if 'script' in fn or '.sh' in toname:
                 #print('set permissions {}'.format(toname))
                 #                          -rw-r--r--  1
                 os.system('ls -l {}'.format(toname))
                 os.chmod(toname, 0o755) # -rwxr-xr-x
                 os.system('ls -l {}'.format(toname))
+                #print('set script permissions', toname)
         #self.cleanup()
         return self
     '''

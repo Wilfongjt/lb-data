@@ -22,7 +22,7 @@ class Function_SimpleTemplatize(Function):
 
     def process(self):
         print('Function_SimpleTemplatize')
-        self.tag_pattern = re.compile('\[\[[A-Za-z:>\'\-\.\s\"{}?;_*(),]+\]\]') # yank all [[]] tags
+        self.tag_pattern = re.compile('\[\[[A-Za-z:>\'\-\.\s\"{}?;_*(),#]+\]\]') # yank all [[]] tags
 
         # handle no tag matches
         #print('tmpl_line', self.tmpl_line)
@@ -34,6 +34,8 @@ class Function_SimpleTemplatize(Function):
                 self.append(group)  # make list of all template tags
 
             for group in self: # apply
+                print('group', group)
+                print('ParseTagToList(group)',ParseTagToList(group))
                 value = MultiList(ParseTagToList(group), self.dictionary).toString()
                 self.tmpl_line = self.tmpl_line.replace(group, value)
         elif '[[' in self.tmpl_line or '{{' in self.tmpl_line:
@@ -109,13 +111,13 @@ def main():
 
     ### G
     nxt = Function_SimpleTemplatize()
-    tmpl = "[[LB_SECRET_PASSWORD]]"
+    tmpl = "[[LB_DB_MODEL_password]]"
     func = Function_Anchor(dictionary_tbl, tmpl) \
         .add(nxt)
     print('G Function nxt', nxt)
     print('G getTemplateLine', func.getTemplateLine())
 
-    assert nxt == ['[[LB_SECRET_PASSWORD]]']
+    assert nxt == ['[[LB_DB_MODEL_password]]']
     assert func.getTemplateLine() == 'PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG'
 
 

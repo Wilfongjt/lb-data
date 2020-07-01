@@ -19,6 +19,7 @@ from configuration_interface import InterfaceConfiguration
 from util import Util
 from file import ListFile
 from test_func import test_table, test_table_template, test_upsert_template
+import os
 
 from pprint import pprint
 
@@ -71,6 +72,14 @@ class Template(ListFile):
                 self.append(tmpl_line)
 
         return self
+    def permissions(self, folder, filename):
+        if '.sh' in filename:
+            print('set permissions {}'.format(filename))
+            #                          -rw-r--r--  1
+            toname = '{}/{}'.format(folder, filename)
+            os.system('ls -l {}'.format(toname))
+            os.chmod(toname, 0o755)  # -rwxr-xr-x
+            os.system('ls -l {}'.format(toname))
 
     def getDictionary(self):
         return self.dictionary

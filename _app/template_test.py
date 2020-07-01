@@ -20,16 +20,16 @@ class Template_Test(Template):
 
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 BEGIN;
   SELECT plan(2);
 
   -- insert
-  SELECT [[api-test-forms..type:insert..is ( {{LB_DB_PREFIX}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]
+  SELECT [[api-test-forms..type:insert..is ( {{LB_PROJECT_prefix}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]
 
   -- select
-  SELECT [[api-test-forms..type:select..matches( {{LB_DB_PREFIX}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]
+  SELECT [[api-test-forms..type:select..matches( {{LB_PROJECT_prefix}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]
 
   SELECT * FROM finish();
 

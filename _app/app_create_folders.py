@@ -20,8 +20,8 @@ class AppCreateFolders(Step):
         self.getData()  # call to bring data forward
         #self.log('data {}'.format(self.get()))
         #self.appSettings.createFolders()
-        print('working-folder', self.appSettings.getFolder('working-folder'))
-        self.appSettings.createAppFolders(self.appSettings.getFolder('working-folder'))
+        print('working_folder', self.appSettings.getFolder('working_folder'))
+        self.appSettings.createAppFolders(self.appSettings.getFolder('working_folder'))
 
         #
 
@@ -53,17 +53,17 @@ class AppCreateFolders(Step):
             #working_folder = '{}/{}'.format(appSettings.getFolder(), appSettings.getAppFolders()[folder_key])
             print('folder_key',folder_key)
 
-            working_folder = appSettings.getFolder('working-folder')
+            working_folder = appSettings.getFolder('working_folder')
 
             print('system folder', working_folder)
-            if working_folder not in self.getData()['working-folder']:
-                self.getData()['working-folder'].append(working_folder)
+            if working_folder not in self.getData()['working_folder']:
+                self.getData()['working_folder'].append(working_folder)
             # make easier to reference
             self.getData()[folder_key] = working_folder
 
         # create folders
-        print('working-folder', appSettings.getAppFolders())
-        for folder_name in self.getData()['working-folder']:
+        print('working_folder', appSettings.getAppFolders())
+        for folder_name in self.getData()['working_folder']:
             print('  folder_name',folder_name)
             if not os.path.exists(folder_name):
                 Util().createFolder(folder_name)
@@ -77,13 +77,13 @@ class AppCreateFolders(Step):
     def process(self):
         super().process()
         # self.log('--')
-        self.getData()['working-folder'] = []  # call to bring data forward
+        self.getData()['working_folder'] = []  # call to bring data forward
         self.log('data {}'.format(self.get()))
-        #self.getData()['working-folder'].append(self.getFolder())
-        self.get('working-folder').append(AppSettings().getAppFolders())
+        #self.getData()['working_folder'].append(self.getFolder())
+        self.get('working_folder').append(AppSettings().getAppFolders())
 
-        #self.getData()['working-folder'].append(self.getFolder())
-        #.append('{}/.{}'.format(str(Path.home()), self.getData()['working-folder-name']))  # working folder
+        #self.getData()['working_folder'].append(self.getFolder())
+        #.append('{}/.{}'.format(str(Path.home()), self.getData()['working_folder-name']))  # working folder
 
         self.create()
         #self.log('---- data: {}'.format(self.getData()))
@@ -102,11 +102,11 @@ def main():
     print('  - {}'.format(step.getDescription()))
 
     # folders stashed in data
-    assert( 'working-folder' in step.getData())
+    assert( 'working_folder' in step.getData())
     assert ('shared-folder' in step.getData())
     assert ('projects-folder' in step.getData())
     # folders exist
-    assert (Util().folder_exists(step.get('working-folder')))
+    assert (Util().folder_exists(step.get('working_folder')))
     assert (Util().folder_exists(step.get('shared-folder')))
     assert (Util().folder_exists(step.get('projects-folder')))
 

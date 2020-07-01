@@ -17,10 +17,11 @@ class Template_DockerfileWebDockerfileWebDkJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'dockerfile-web.dockerfile-web.dk.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/web'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/web'
     def getOutputName(self): return 'dockerfile-web'
     def getTemplateList(self):
         return '''
@@ -61,10 +62,11 @@ class Template_DockerComposeDockerComposeDcJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'docker-compose.docker-compose.dc.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain'
     def getOutputName(self): return 'docker-compose.yml'
     def getTemplateList(self):
         return '''
@@ -72,66 +74,78 @@ version: '3'
 # docker-compose up
 # ref: http://postgrest.org/en/v6.0/install.html#docker
 # ref: https://github.com/mattddowney/compose-postgrest/blob/master/docker-compose.yml
+# Issue:  'password authentication failed for user "postgres"'
+# Resolution:  then delete the database instance and rerun docker-compose up
+# Trouble: Environment variables
+# Solution: add .env in same folder as this yml.  include same name variables as those in environment section
 
 services:
-  admin:
-    container_name: [[admin-name]]
-    image: [[app-owner]]/[[admin-name]]
-    build:
-      context: ./[[admin-name]]
-      dockerfile: dockerfile-[[admin-name]]
-    command: >
-      bash -c "npm install && npm run dev"
-    volumes:
-      - ./[[admin-name]]:/usr/src
-    ports:
-      - "3200:3000"
-  web:
-    container_name: [[web-name]]
-    image: [[app-owner]]/[[web-name]]
-    build:
-      context: ./[[web-name]]
-      dockerfile: dockerfile-[[web-name]]
-    command: >
-      bash -c "npm install && npm run dev"
-    volumes:
-      - ./[[web-name]]:/usr/src
-    ports:
-      - "3000:3000"
+  #admin:
+  #  container_name: [[admin-name]]
+  #  image: [[app-owner]]/[[admin-name]]
+  #  build:
+  #    context: ./[[admin-name]]
+  #    dockerfile: dockerfile-[[admin-name]]
+  #  command: >
+  #    bash -c "npm install && npm run dev"
+  #  volumes:
+  #    - ./[[admin-name]]:/usr/src
+  #  ports:
+  #    - "3200:3000"
+  #web:
+  #  container_name: [[web-name]]
+  #  image: [[app-owner]]/[[web-name]]
+  #  build:
+  #    context: ./[[web-name]]
+  #    dockerfile: dockerfile-[[web-name]]
+  #  command: >
+  #    bash -c "npm install && npm run dev"
+  #  volumes:
+  #    - ./[[web-name]]:/usr/src
+  #  ports:
+  #    - "3000:3000"
 
   #############
   # POSTGRES
   #########
 
   db:
-    env_file:
-         - pg.env
+    # env_file:
+    #     - pg.env
+    # create a .env to hold env vars ... see below
     build:
-
         context: ./db
         dockerfile: dockerfile-db
     ports:
       - "5433:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${LB_POSTGRES_PASSWORD}
-      - POSTGRES_DB=[[LB_DB_PREFIX]]_db
-      - DB_ANON_ROLE=anonymous
-      - DB_SCHEMA=[[LB_DB_PREFIX]]_schema
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=postgres
+      - DB_ANON_ROLE=${DB_ANON_ROLE}
+      - DB_SCHEMA=${DB_SCHEMA}
       - DB_NAME=postgres
-      - DB_USER=postgres
-      - DB_PASS="${LB_DB_PASS}"
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      #- POSTGRES_USER=${LB_POSTGRES_MODEL_username}
+      #- POSTGRES_PASSWORD=${LB_POSTGRES_MODEL_password}
+      #- POSTGRES_DB=postgres
+      #- DB_ANON_ROLE=${LB_DB_MODEL_role}
+      #- DB_SCHEMA=[[LB_PROJECT_prefix]]_schema
+      #- DB_NAME=postgres
+      #- DB_USER=${LB_DB_MODEL_username}
+      #- DB_PASS=${LB_DB_MODEL_password}
 
     volumes:
       # anything in initdb directory is created in the database
       # see "How to extend this image" section at https://hub.docker.com/r/_/postgres/
-      #      - "./[[LB_DB_PREFIX]]-db/pg-database/db-scripts/compiled-scripts:/docker-entrypoint-initdb.d"
+      #      - "./[[LB_PROJECT_prefix]]-db/pg-database/db-scripts/compiled-scripts:/docker-entrypoint-initdb.d"
 
       - "./db/sql:/docker-entrypoint-initdb.d"
 
       # Uncomment this if you want to persist the data.
 
-      - "~/.data/[[LB_DB_PREFIX]]_db/pgdata:/var/lib/postgresql/data"
+      #- "~/.data/[[LB_PROJECT_prefix]]_db/pgdata:/var/lib/postgresql/data"
 
     networks:
       - postgrest-backend
@@ -152,11 +166,15 @@ services:
     environment:
       # The standard connection URI format, documented at
       # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
-
-      PGRST_DB_URI: postgres://postgres:[[LB_POSTGRES_PASSWORD]]@db:5432/[[LB_DB_PREFIX]]_db
-      PGRST_DB_SCHEMA: [[LB_DB_PREFIX]]_schema
-      PGRST_DB_ANON_ROLE: anonymous
-
+      - PGRST_DB_URI=postgres://postgres:${DB_PASS}@db:5432/[[LB_PROJECT_prefix]]_db
+      - PGRST_DB_SCHEMA=${DB_SCHEMA}
+      - PGRST_DB_ANON_ROLE=${DB_ANON_ROLE}
+      #PGRST_DB_URI: postgres://postgres:${DB_PASS}@db:5432/[[LB_PROJECT_prefix]]_db
+      #PGRST_DB_SCHEMA: ${DB_SCHEMA}
+      #PGRST_DB_ANON_ROLE: ${DB_ANON_ROLE}
+      #PGRST_DB_URI: postgres://postgres:${LB_POSTGRES_MODEL_password}@db:5432/[[LB_PROJECT_prefix]]_db
+      #PGRST_DB_SCHEMA: [[LB_PROJECT_prefix]]_schema
+      #PGRST_DB_ANON_ROLE: ${LB_DB_MODEL_role}
     depends_on:
       - db
 
@@ -196,10 +214,11 @@ class Template_DockerfileDbDockerfileDbDkJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'dockerfile-db.dockerfile-db.dk.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db'
     def getOutputName(self): return 'dockerfile-db'
     def getTemplateList(self):
         return '''
@@ -239,17 +258,16 @@ class Template_PgEnvironmentEnvJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'pg.environment.env.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/web'
-    def getOutputName(self): return 'env'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/web'
+    def getOutputName(self): return '.env'
     def getTemplateList(self):
         return '''
-LB_POSTGRES_PASSWORD=[[LB_POSTGRES_PASSWORD]]
-LB_DB_PASS=[[LB_DB_PASS]]
-#LB_POSTGRES_PASSWORD=postgrespassword
-#LB_DB_PASS=PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG
+LB_POSTGRES_MODEL_password=[[LB_POSTGRES_MODEL_password]]
+LB_DB_MODEL_password=[[LB_DB_MODEL_password]]
 '''.split('\n')
  
     def getDictionary(self):
@@ -271,10 +289,11 @@ class Template_DockerfileAdminDockerfileAdminDkJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'dockerfile-admin.dockerfile-admin.dk.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/admin'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/admin'
     def getOutputName(self): return 'dockerfile-admin'
     def getTemplateList(self):
         return '''
@@ -315,14 +334,15 @@ class Template_TestJwtTokenTestPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'test-jwt-token.test.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '99.test-jwt-token.test.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 select '##### TESTS';
 BEGIN;
 SELECT plan(14);
@@ -436,26 +456,27 @@ class Template_RegisterTablePgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'register.table.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '05.register.table.pg.sql'
     def getTemplateList(self):
         return '''
 ---- SET DB
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 -- TABLE
 create table if not exists
-[[LB_DB_PREFIX]]_schema.[[tbl-name]] (
+[[LB_PROJECT_prefix]]_schema.[[tbl-name]] (
   <<table-fields>>
 );
 
 -- INDEXxxx
-CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
+CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
 
---CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id text_pattern_ops);
---CREATE UNIQUE INDEX [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
+--CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id text_pattern_ops);
+--CREATE UNIQUE INDEX [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
 -- TRIGGER FUNCTION
 CREATE OR REPLACE FUNCTION [[tbl-prefix]]_ins_upd_trigger_func() RETURNS trigger
 AS $$
@@ -490,7 +511,7 @@ END; $$ LANGUAGE plpgsql;
 
 -- TRIGGER
 CREATE TRIGGER [[tbl-prefix]]_ins_upd_trigger
- BEFORE INSERT ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+ BEFORE INSERT ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
  FOR EACH ROW
  EXECUTE PROCEDURE [[tbl-prefix]]_ins_upd_trigger_func();
 
@@ -573,6 +594,12 @@ CREATE TRIGGER [[tbl-prefix]]_ins_upd_trigger
 			                    "type": "FUNCTION",
 			                    "parameters": "JSONB",
 			                    "role": "anonymous"
+			                },
+			                {
+			                    "privilege": "EXECUTE",
+			                    "type": "FUNCTION",
+			                    "parameters": "JSONB",
+			                    "role": "api_user"
 			                }
 			            ],
 			            "form": [
@@ -688,6 +715,24 @@ CREATE TRIGGER [[tbl-prefix]]_ins_upd_trigger
 			              "type": "FUNCTION",
 			              "parameters": "TEXT, JSONB",
 			              "role": "anonymous"
+			            },
+			            {
+			              "privilege": "EXECUTE",
+			              "type": "FUNCTION",
+			              "parameters": "TEXT, TEXT",
+			              "role": "anonymous"
+			            },
+			            {
+			              "privilege": "EXECUTE",
+			              "type": "FUNCTION",
+			              "parameters": "TEXT, JSONB",
+			              "role": "api_user"
+			            },
+			            {
+			              "privilege": "EXECUTE",
+			              "type": "FUNCTION",
+			              "parameters": "TEXT, TEXT",
+			              "role": "api_user"
 			            }
 			          ],
 			          "form": [
@@ -707,7 +752,7 @@ CREATE TRIGGER [[tbl-prefix]]_ins_upd_trigger
 			              "const": "user"
 			            },
 			            {
-			              "name": "app-id",
+			              "name": "app_id",
 			              "context": "name",
 			              "type": "TEXT",
 			              "json": "CRI",
@@ -743,7 +788,7 @@ CREATE TRIGGER [[tbl-prefix]]_ins_upd_trigger
 			              "password": "current_setting('app.jwt_secret')",
 			              "form": {
 			                "type": "user",
-			                "app-id": "my-test-app@1.0.0",
+			                "app_id": "my-test-app@1.0.0",
 			                "username": "testuser@register.com",
 			                "email": "test@register.com",
 			                "password": "g1G!gggg",
@@ -785,10 +830,11 @@ class Template_NuxtjsWebScriptShShJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'nuxtjs-web.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return 'nuxtjs-web.sh'
     def getTemplateList(self):
         return '''
@@ -797,9 +843,9 @@ class Template_NuxtjsWebScriptShShJson(Template):
 source ./_conf.sh
 
 # check for database folder and make if not there
-echo "LB_GIT_PROJECT is ${LB_GIT_PROJECT} "
-echo "LB_APP_NAME is ${LB_APP_NAME}"
-cd ${LB_GIT_PROJECT}
+echo "LB_GIT_PROJECT is ${LB_PROJECT_name} "
+echo "LB_PROJECT_name is ${LB_PROJECT_name}"
+cd ${LB_PROJECT_name}
 ls
 if [ ! -d "web/node_modules" ] ; then
     echo 'new nuxtjs'
@@ -853,10 +899,11 @@ class Template_DownScriptShShJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'down.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return 'down.sh'
     def getTemplateList(self):
         return '''
@@ -865,8 +912,8 @@ source ./_conf.sh
 
 # keep stuff from build docker system prune
 
-echo "${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
-cd ${LB_APP_NAME}/
+echo "${LB_ENV_data_folder}/${LB_PROJECT_prefix}_db"
+cd ${LB_PROJECT_name}/
 
 docker-compose down
 
@@ -891,10 +938,11 @@ class Template_NuxtjsAdminScriptShShJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'nuxtjs-admin.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return 'nuxtjs-admin.sh'
     def getTemplateList(self):
         return '''
@@ -903,9 +951,9 @@ class Template_NuxtjsAdminScriptShShJson(Template):
 source ./_conf.sh
 
 # check for database folder and make if not there
-echo "LB_GIT_PROJECT is ${LB_GIT_PROJECT} "
-echo "LB_APP_NAME is ${LB_APP_NAME}"
-cd ${LB_GIT_PROJECT}
+echo "LB_GIT_PROJECT is ${LB_PROJECT_name} "
+echo "LB_PROJECT_name is ${LB_PROJECT_name}"
+cd ${LB_PROJECT_name}
 ls
 if [ ! -d "[[nuxtjs-name]]/node_modules" ] ; then
   echo 'new nuxtjs'
@@ -959,10 +1007,11 @@ class Template_UpScriptShShJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'up.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return 'up.sh'
     def getTemplateList(self):
         return '''
@@ -971,8 +1020,8 @@ source ./_conf.sh
 
 # keep stuff from build docker system prune
 
-echo "${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
-cd ${LB_APP_NAME}/
+echo "${LB_ENV_data_folder}/${LB_PROJECT_prefix}_db"
+cd ${LB_PROJECT_name}/
 docker-compose down
 docker system prune
 
@@ -982,7 +1031,7 @@ ls
 if [ ! -f 'web/.env' ] ; then
   echo "  "
   echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  echo "   You must setup an .env file in ${LB_REPONAME}/"
+  echo "   You must setup an .env file in ${LB_PROJECT_name}/"
   echo "       Terminating script."
   echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
   echo "  "
@@ -991,13 +1040,13 @@ fi
 
 #docker-compose down
 
-echo "${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
-if [ -d "${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db" ]; then
-  echo "Deleting... ${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
-  rm -rv "${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
-  echo "... Deleted ${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
+echo "${LB_ENV_data_folder}/db"
+if [ -d "${LB_ENV_data_folder}/db" ]; then
+  echo "Deleting... ${LB_ENV_data_folder}/db"
+  rm -rv "${LB_ENV_data_folder}/db"
+  echo "... Deleted ${LB_ENV_data_folder}/db"
 else
-  echo "Not found ${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
+  echo "Not found ${LB_ENV_data_folder}/db"
 fi
 
 # build everything from scratch...slow but works
@@ -1031,63 +1080,40 @@ class Template__confScriptShShJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return '_conf.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return '_conf.sh'
     def getTemplateList(self):
         return '''
-#
+# generated from _conf.script-sh.sh.tmpl
 # change these to match your project
 
-export LB_ENV=[[LB_ENV]]
-export LB_WORKING_NAME=[[LB_WORKING_NAME]]
+# export LB_ENV=[[LB_ENV]]
 
-export LB_BRANCH=[[LB_BRANCH]]
-export LB_APP_NAME=[[LB_APP_NAME]]
-export LB_APP_PREFIX=[[LB_APP_PREFIX]]
+export LB_ENV_working_folder=[[LB_ENV_working_folder]]
+export LB_ENV_data_folder=[[LB_ENV_data_folder]]
 
-export LB_PROJECT_NAME=[[LB_PROJECT_NAME]]
+export LB_PROJECT_branch=[[LB_PROJECT_branch]]
+export LB_PROJECT_name=[[LB_PROJECT_name]]
+export LB_PROJECT_prefix=[[LB_PROJECT_prefix]]
+export LB_PROJECT_owner=[[LB_PROJECT_owner]]
 
-export LB_GIT_OWNERNAME=[[LB_GIT_OWNERNAME]]
-export LB_GIT_PROJECT=[[LB_GIT_PROJECT]]
+export LB_POSTGRES_MODEL_username=[[LB_POSTGRES_MODEL_username]]
+export LB_POSTGRES_MODEL_password=[[LB_POSTGRES_MODEL_password]]
 
-export LB_WORKING_FOLDER=~/${LB_WORKING_NAME}
-export LB_DB_PREFIX=${LB_APP_PREFIX}
-export LB_POSTGRES_PASSWORD=[[LB_POSTGRES_PASSWORD]]
-export LB_DB_PASS=[[LB_DB_PASS]]
-export LB_DATA_FOLDER_NAME=.data
+export LB_DB_MODEL_username=[[LB_DB_MODEL_username]]
+export LB_DB_MODEL_role=[[LB_DB_MODEL_role]]
+export LB_DB_MODEL_password=[[LB_DB_MODEL_password]]
 
-export LB_DATA_FOLDER=~/${LB_DATA_FOLDER_NAME}
+export MY_REPOURL=https://github.com/${LB_PROJECT_owner}/${LB_PROJECT_name}.git
 
-#export LB_CODE_FOLDER=~/${LB_WORKING_NAME}/code
-#export LB_PROJECTS_FOLDER=~/${LB_WORKING_NAME}/projects
-#export LB_TESTING_FOLDER=~/${LB_WORKING_NAME}/testing
-
-echo "LB_ENV is ${LB_ENV}"
-echo "LB_BRANCH is ${LB_BRANCH}"
-echo "LB_APP_NAME is ${LB_APP_NAME}"
-echo "LB_APP_PREFIX is ${LB_APP_PREFIX}"
-echo "LB_DB_PREFIX is ${LB_DB_PREFIX}"
-
-echo "LB_GIT_OWNERNAME is ${LB_GIT_OWNERNAME}"
-echo "LB_GIT_PROJECT is ${LB_GIT_PROJECT}"
-
-echo "LB_WORKING_NAME is ${LB_WORKING_NAME}"
-echo "LB_WORKING_FOLDER is ${LB_WORKING_FOLDER}"
-
-echo "LB_DATA_FOLDER is ${LB_DATA_FOLDER}"
-
-echo "LB_POSTGRES_PASSWORD is ${LB_POSTGRES_PASSWORD}"
-echo "LB_DB_PASS is ${LB_DB_PASS}"
-#echo "LB_CODE_FOLDER is ${LB_CODE_FOLDER}"
-#echo "LB_PROJECTS_FOLDER is ${LB_PROJECTS_FOLDER}"
-#echo "LB_TESTING_FOLDER is ${LB_TESTING_FOLDER}"
 
 
 # Folders
-# /<working-folder>
+# /<working_folder>
 #     - /<code-folder>
 #     --- /<umbrella-folder>
 #     ----- /<branch-folder>
@@ -1117,6 +1143,62 @@ echo "LB_DB_PASS is ${LB_DB_PASS}"
 ##########
 ##########
  
+class Template_DbScriptShShJson(Template):
+ 
+    def __init__(self):
+        super().__init__({})
+ 
+    def process(self):
+        super().process()
+        print('{}'.format('\n'.join(self)))
+        self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
+        return self
+ 
+    def getInputTemplate(self): return 'db.script-sh.sh.tmpl'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
+    def getOutputName(self): return 'db.sh'
+    def getTemplateList(self):
+        return '''
+#!/bin/bash
+# source ./__scripts/00.settings.sh
+source ./_conf.sh
+
+# check for database folder and make if not there
+echo "MY GIT PROJECT is ${LB_PROJECT_name}"
+
+cd ${LB_PROJECT_name}
+
+if [ ! -d ${LB_PROJECT_name} ] ; then
+   if [ ! -d db/ ] ; then
+     # create folder
+     mkdir db
+   fi
+fi
+
+if [ -d db/ ] ; then
+     # copy files for postgres
+     cd db/
+     #cp -r ../../../../../00-Setup/__datastore/* .
+     cp -r ~/${LB_ENV_working_folder}/code/00-Setup/__datastore/* .
+     # make sql script folder
+     mkdir 'sql'
+     cd ..
+   fi
+cd ..
+ls
+'''.split('\n')
+ 
+    def getDictionary(self):
+        return \
+			{
+			    "type": "script-sh"
+			}
+        
+##########
+##########
+##########
+ 
 class Template_AuthenticatorRolePgJson(Template):
  
     def __init__(self):
@@ -1126,16 +1208,17 @@ class Template_AuthenticatorRolePgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'authenticator.role.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '03.authenticator.role.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
-CREATE ROLE [[role-name]] NOINHERIT LOGIN PASSWORD '[[LB_SECRET_PASSWORD]]';
+CREATE ROLE [[role-name]] NOINHERIT LOGIN PASSWORD '[[LB_DB_MODEL_password]]';
 
 
 
@@ -1161,14 +1244,15 @@ class Template_AnonymousRolePgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'role.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '03.anonymous.role.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 CREATE ROLE [[role-name]] ;
 
@@ -1201,14 +1285,15 @@ class Template_EditorRolePgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'role.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '03.editor.role.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 CREATE ROLE [[role-name]] ;
 
@@ -1227,6 +1312,42 @@ CREATE ROLE [[role-name]] ;
 ##########
 ##########
  
+class Template_Api_userRolePgJson(Template):
+ 
+    def __init__(self):
+        super().__init__({})
+ 
+    def process(self):
+        super().process()
+        print('{}'.format('\n'.join(self)))
+        self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
+        return self
+ 
+    def getInputTemplate(self): return 'role.pg.tmpl'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputName(self): return '03.api_user.role.pg.sql'
+    def getTemplateList(self):
+        return '''
+\c [[LB_PROJECT_prefix]]_db
+
+CREATE ROLE [[role-name]] ;
+
+
+
+'''.split('\n')
+ 
+    def getDictionary(self):
+        return \
+			{
+			    "type": "role.pg",
+			    "role-name": "api_user"
+			}
+        
+##########
+##########
+##########
+ 
 class Template_Get_idFunctionPgJson(Template):
  
     def __init__(self):
@@ -1236,18 +1357,19 @@ class Template_Get_idFunctionPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'get_id.function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '07.get_id.function.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 -------------------------------------------
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.get_id(_token text) RETURNS TEXT
+[[LB_PROJECT_prefix]]_schema.get_id(_token text) RETURNS TEXT
 AS $$
   DECLARE data TEXT;
   DECLARE secret TEXT;
@@ -1283,21 +1405,22 @@ class Template_Is_valid_tokenFunctionPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'is_valid_token.function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '07.is_valid_token.function.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 ---------------------------------------------
 
 
 CREATE OR REPLACE FUNCTION
 
-[[LB_DB_PREFIX]]_schema.is_valid_token(_token TEXT, role TEXT) RETURNS Boolean
+[[LB_PROJECT_prefix]]_schema.is_valid_token(_token TEXT, role TEXT) RETURNS Boolean
 
 AS $$
 
@@ -1327,7 +1450,7 @@ END;  $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION
 
-[[LB_DB_PREFIX]]_schema.is_valid_token(_token text) RETURNS Boolean
+[[LB_PROJECT_prefix]]_schema.is_valid_token(_token text) RETURNS Boolean
 
 AS $$
 
@@ -1370,19 +1493,20 @@ class Template_Get_app_idFunctionPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'get_app_id.function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '07.get_app_id.function.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 ----------------------------------------------
 
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.get_app_id(app_name TEXT, version TEXT) RETURNS TEXT
+[[LB_PROJECT_prefix]]_schema.get_app_id(app_name TEXT, version TEXT) RETURNS TEXT
 AS $$
   DECLARE id TEXT;
 
@@ -1421,19 +1545,20 @@ class Template_Validate_passwordValidateFunctionPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'validate_password.validate-function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '04.validate_password.validate-function.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 ----------------------------------------------
 /*
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.validate_password(password text) RETURNS BOOLEAN
+[[LB_PROJECT_prefix]]_schema.validate_password(password text) RETURNS BOOLEAN
 AS $$
   DECLARE rc BOOLEAN;
 BEGIN
@@ -1472,20 +1597,21 @@ class Template_Get_roleFunctionPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'get_role.function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '07.get_role.function.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 ----------------------------------------------
 
 CREATE OR REPLACE FUNCTION
 
-[[LB_DB_PREFIX]]_schema.get_role(_token text) RETURNS TEXT
+[[LB_PROJECT_prefix]]_schema.get_role(_token text) RETURNS TEXT
 
 AS $$
 
@@ -1524,19 +1650,20 @@ class Template_Get_usernameFunctionPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'get_username.function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '07.get_username.function.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 ----------------------------------------------
 
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.get_username(_token text) RETURNS TEXT
+[[LB_PROJECT_prefix]]_schema.get_username(_token text) RETURNS TEXT
 AS $$
 
   DECLARE data TEXT;
@@ -1572,16 +1699,17 @@ class Template_RegisterUserInitializePgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'initialize.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '11.register-user.initialize.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 -- insert a test user
--- [[api-test-forms..type:insert..select {{LB_DB_PREFIX}}_schema.{{api-name}}(sign(current_setting('app.lb_register_anonymous')::json, current_setting('app.jwt_secret'))::TEXT,\'{{form}}\'::JSONB);]]
+-- [[api-test-forms..type:insert..select {{LB_PROJECT_prefix}}_schema.{{api-name}}(sign(current_setting('app.lb_register_anonymous')::json, current_setting('app.jwt_secret'))::TEXT,\'{{form}}\'::JSONB);]]
     --
     --  sign(current_setting('app.lb_register_anonymous')::json, current_setting('app.jwt_secret'))
 
@@ -1592,7 +1720,7 @@ class Template_RegisterUserInitializePgJson(Template):
  
     def getDictionary(self):
         return \
-			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "user", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "anonymous"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "user"}, {"name": "app-id", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-test-app@1.0.0"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}], "api-test-forms": [{"type": "insert", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.user( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "user", "app-id": "my-test-app@1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"status\": \"200\", \"msg\": \"ok\"}'::JSONB", "description": "'user - insert test'::TEXT"}, {"type": "select", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.user( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'", "description": "'user - select from {{tbl-name}} by id and check token'::TEXT"}]}
+			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "user", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, TEXT", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "api_user"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, TEXT", "role": "api_user"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "user"}, {"name": "app_id", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-test-app@1.0.0"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}], "api-test-forms": [{"type": "insert", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.user( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "user", "app_id": "my-test-app@1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"status\": \"200\", \"msg\": \"ok\"}'::JSONB", "description": "'user - insert test'::TEXT"}, {"type": "select", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.user( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'", "description": "'user - select from {{tbl-name}} by id and check token'::TEXT"}]}
         
 ##########
 ##########
@@ -1607,17 +1735,18 @@ class Template_RegisterAppInitializePgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'register-app.initialize.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '11.register-app.initialize.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 -- insert a test user
 
--- [[api-test-forms..type:insert..select {{LB_DB_PREFIX}}_schema.{{api-name}}(\'{{form}}\'::JSONB);]]
+-- [[api-test-forms..type:insert..select {{LB_PROJECT_prefix}}_schema.{{api-name}}(\'{{form}}\'::JSONB);]]
 
 
 
@@ -1625,7 +1754,7 @@ class Template_RegisterAppInitializePgJson(Template):
  
     def getDictionary(self):
         return \
-			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "app", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "anonymous"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "app"}, {"name": "app-name", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-app"}, {"name": "version", "context": "version", "type": "TEXT", "default": "1.0.0", "json": "CR"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}, {"name": "token", "context": "token", "type": "TEXT", "json": "r", "function": "sign(_payload, _secret)"}], "api-test-forms": [{"type": "insert", "description": "'app - insert test'::TEXT", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.app( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"msg\": \"OK\", \"status\": \"200\"}'::JSONB"}, {"type": "select", "description": "'app - select from {{tbl-name}} by id and check token'::TEXT", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.app( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'"}]}
+			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "app", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "api_user"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "app"}, {"name": "app-name", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-app"}, {"name": "version", "context": "version", "type": "TEXT", "default": "1.0.0", "json": "CR"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}, {"name": "token", "context": "token", "type": "TEXT", "json": "r", "function": "sign(_payload, _secret)"}], "api-test-forms": [{"type": "insert", "description": "'app - insert test'::TEXT", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.app( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"msg\": \"OK\", \"status\": \"200\"}'::JSONB"}, {"type": "select", "description": "'app - select from {{tbl-name}} by id and check token'::TEXT", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.app( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'"}]}
         
 ##########
 ##########
@@ -1640,21 +1769,22 @@ class Template_RegisterUserInterfaceSelectPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'interface-select.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '09.register-user.interface-select.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 -------------------------------
 -- Select
 ---------
 
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.[[api-name]](_token TEXT, _form_text TEXT) RETURNS JSONB
+[[LB_PROJECT_prefix]]_schema.[[api-name]](_token TEXT, _form_text TEXT) RETURNS JSONB
 AS $$
   DECLARE rc TEXT;
   DECLARE secret TEXT;
@@ -1687,7 +1817,7 @@ BEGIN
 
     select [[tbl-prefix]]_[[tbl-fields.context:form.{{name}}]]
     into rc_form
-    from [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+    from [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
     where [[tbl-prefix]]_[[api-form.context:uuid-TEXT.{{name}}]]= _id;
 
     if rc_form is NULL then
@@ -1700,16 +1830,17 @@ BEGIN
 END;  $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION
-  [[LB_DB_PREFIX]]_schema.[[api-name]](
+  [[LB_PROJECT_prefix]]_schema.[[api-name]](
   TEXT, TEXT
   ) TO anonymous;
 
+[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_PROJECT_prefix}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]
 
 '''.split('\n')
  
     def getDictionary(self):
         return \
-			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "user", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "anonymous"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "user"}, {"name": "app-id", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-test-app@1.0.0"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}], "api-test-forms": [{"type": "insert", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.user( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "user", "app-id": "my-test-app@1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"status\": \"200\", \"msg\": \"ok\"}'::JSONB", "description": "'user - insert test'::TEXT"}, {"type": "select", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.user( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'", "description": "'user - select from {{tbl-name}} by id and check token'::TEXT"}]}
+			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "user", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, TEXT", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "api_user"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, TEXT", "role": "api_user"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "user"}, {"name": "app_id", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-test-app@1.0.0"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}], "api-test-forms": [{"type": "insert", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.user( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "user", "app_id": "my-test-app@1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"status\": \"200\", \"msg\": \"ok\"}'::JSONB", "description": "'user - insert test'::TEXT"}, {"type": "select", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.user( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'", "description": "'user - select from {{tbl-name}} by id and check token'::TEXT"}]}
         
 ##########
 ##########
@@ -1724,18 +1855,19 @@ class Template_RegisterUserInterfaceUpsertPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'interface-upsert.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '09.register-user.interface-upsert.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 -- general solution
 
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
+[[LB_PROJECT_prefix]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
 AS $$
   Declare rc jsonb;
   Declare _cur_row JSONB;
@@ -1748,7 +1880,7 @@ AS $$
     _model_user := current_setting('app.lb_register_[[api-role]]')::jsonb;
 
     -- figure out which token: app-token or user-token
-    if not([[LB_DB_PREFIX]]_schema.is_valid_token(_token, _model_user ->> 'role')) then
+    if not([[LB_PROJECT_prefix]]_schema.is_valid_token(_token, _model_user ->> 'role')) then
         return '{"status": "401", "msg": "Bad Request, token."}'::JSONB;
     end if;
 
@@ -1766,7 +1898,7 @@ AS $$
             -- get current json object
             select [[tbl-prefix]]_[[tbl-fields.context:form.{{name}}]] as _usr
               into _cur_row
-              from [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+              from [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
               where [[tbl-prefix]]_[[api-form.context:pk.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:pk.{{name}}]]' as TEXT) and [[tbl-prefix]]_[[api-form.context:type.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:type.{{name}}]]' as TEXT);
 
         EXCEPTION
@@ -1821,7 +1953,7 @@ AS $$
                 return '{"status":"400", "msg": "Bad Request, not acceptable."}'::JSONB;
             end if;
 
-			INSERT INTO [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+			INSERT INTO [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
                 ([[tbl-fields.crud:(CF).{{tbl-prefix}}_{{name}}., ]])
               VALUES
                 ([[tbl-fields.crud:(CF)._{{name}}., ]] );
@@ -1841,12 +1973,12 @@ AS $$
   END;
 $$ LANGUAGE plpgsql;
 
-[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_DB_PREFIX}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]
+[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_PROJECT_prefix}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]
 '''.split('\n')
  
     def getDictionary(self):
         return \
-			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "user", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "anonymous"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "user"}, {"name": "app-id", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-test-app@1.0.0"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}], "api-test-forms": [{"type": "insert", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.user( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "user", "app-id": "my-test-app@1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"status\": \"200\", \"msg\": \"ok\"}'::JSONB", "description": "'user - insert test'::TEXT"}, {"type": "select", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.user( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'", "description": "'user - select from {{tbl-name}} by id and check token'::TEXT"}]}
+			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "user", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, TEXT", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "api_user"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, TEXT", "role": "api_user"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "user"}, {"name": "app_id", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-test-app@1.0.0"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}], "api-test-forms": [{"type": "insert", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.user( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "user", "app_id": "my-test-app@1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"status\": \"200\", \"msg\": \"ok\"}'::JSONB", "description": "'user - insert test'::TEXT"}, {"type": "select", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.user( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'", "description": "'user - select from {{tbl-name}} by id and check token'::TEXT"}]}
         
 ##########
 ##########
@@ -1861,23 +1993,24 @@ class Template_RegisterAppInterfaceTestPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'interface-test.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '99.register-app.interface-test.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 BEGIN;
   SELECT plan(2);
 
   -- insert
-  SELECT [[api-test-forms..type:insert..is ( {{LB_DB_PREFIX}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]
+  SELECT [[api-test-forms..type:insert..is ( {{LB_PROJECT_prefix}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]
 
   -- select
-  SELECT [[api-test-forms..type:select..matches( {{LB_DB_PREFIX}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]
+  SELECT [[api-test-forms..type:select..matches( {{LB_PROJECT_prefix}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]
 
   SELECT * FROM finish();
 
@@ -1886,7 +2019,7 @@ ROLLBACK;
  
     def getDictionary(self):
         return \
-			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "app", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "anonymous"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "app"}, {"name": "app-name", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-app"}, {"name": "version", "context": "version", "type": "TEXT", "default": "1.0.0", "json": "CR"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}, {"name": "token", "context": "token", "type": "TEXT", "json": "r", "function": "sign(_payload, _secret)"}], "api-test-forms": [{"type": "insert", "description": "'app - insert test'::TEXT", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.app( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"msg\": \"OK\", \"status\": \"200\"}'::JSONB"}, {"type": "select", "description": "'app - select from {{tbl-name}} by id and check token'::TEXT", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.app( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'"}]}
+			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "app", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "api_user"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "app"}, {"name": "app-name", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-app"}, {"name": "version", "context": "version", "type": "TEXT", "default": "1.0.0", "json": "CR"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}, {"name": "token", "context": "token", "type": "TEXT", "json": "r", "function": "sign(_payload, _secret)"}], "api-test-forms": [{"type": "insert", "description": "'app - insert test'::TEXT", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.app( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"msg\": \"OK\", \"status\": \"200\"}'::JSONB"}, {"type": "select", "description": "'app - select from {{tbl-name}} by id and check token'::TEXT", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.app( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'"}]}
         
 ##########
 ##########
@@ -1901,18 +2034,19 @@ class Template_RegisterAppInterfaceUpsertPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'register-app.interface-upsert.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '09.register-app.interface-upsert.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 -- custom
 -- gen from default tmpl
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
+[[LB_PROJECT_prefix]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
 AS $$
   Declare rc jsonb;
   Declare _cur_row JSONB;
@@ -1925,7 +2059,7 @@ AS $$
     _model_user := current_setting('app.lb_register_[[api-role]]')::jsonb;
 
     -- figure out which token: app-token or user-token
-    if not([[LB_DB_PREFIX]]_schema.is_valid_token(_token, _model_user ->> 'role')) then
+    if not([[LB_PROJECT_prefix]]_schema.is_valid_token(_token, _model_user ->> 'role')) then
         return '{"status": "401", "msg":"Unauthorized bad token"}'::JSONB;
     end if;
 
@@ -1959,7 +2093,7 @@ AS $$
 
         rc := '{"status":"200", "msg":"OK"}'::JSONB;
 
-        INSERT INTO [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+        INSERT INTO [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
             ([[tbl-fields.crud:(CF).{{tbl-prefix}}_{{name}}., ]])
           VALUES
             ([[tbl-fields.crud:(CF)._{{name}}., ]] );
@@ -1978,7 +2112,7 @@ AS $$
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.[[api-name]](_json JSONB) RETURNS JSONB
+[[LB_PROJECT_prefix]]_schema.[[api-name]](_json JSONB) RETURNS JSONB
 AS $$
 DECLARE _token TEXT;
 DECLARE _jwt TEXT;
@@ -1993,17 +2127,17 @@ BEGIN
 	_jwt := current_setting('app.lb_register_jwt')::JSONB ->> 'password';
 	-- make the token
 	_token := sign(_anonymous::JSON, _jwt) ;
-	return [[LB_DB_PREFIX]]_schema.[[api-name]](_token, _json);
+	return [[LB_PROJECT_prefix]]_schema.[[api-name]](_token, _json);
 END;
 $$ LANGUAGE plpgsql;
 
-[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_DB_PREFIX}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]
+[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_PROJECT_prefix}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]
 -- END XXXXXXXX
 '''.split('\n')
  
     def getDictionary(self):
         return \
-			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "app", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "anonymous"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "app"}, {"name": "app-name", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-app"}, {"name": "version", "context": "version", "type": "TEXT", "default": "1.0.0", "json": "CR"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}, {"name": "token", "context": "token", "type": "TEXT", "json": "r", "function": "sign(_payload, _secret)"}], "api-test-forms": [{"type": "insert", "description": "'app - insert test'::TEXT", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.app( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"msg\": \"OK\", \"status\": \"200\"}'::JSONB"}, {"type": "select", "description": "'app - select from {{tbl-name}} by id and check token'::TEXT", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.app( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'"}]}
+			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "app", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "api_user"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "app"}, {"name": "app-name", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-app"}, {"name": "version", "context": "version", "type": "TEXT", "default": "1.0.0", "json": "CR"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}, {"name": "token", "context": "token", "type": "TEXT", "json": "r", "function": "sign(_payload, _secret)"}], "api-test-forms": [{"type": "insert", "description": "'app - insert test'::TEXT", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.app( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"msg\": \"OK\", \"status\": \"200\"}'::JSONB"}, {"type": "select", "description": "'app - select from {{tbl-name}} by id and check token'::TEXT", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.app( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'"}]}
         
 ##########
 ##########
@@ -2018,21 +2152,22 @@ class Template_RegisterAppInterfaceSelectPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'interface-select.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '09.register-app.interface-select.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 -------------------------------
 -- Select
 ---------
 
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.[[api-name]](_token TEXT, _form_text TEXT) RETURNS JSONB
+[[LB_PROJECT_prefix]]_schema.[[api-name]](_token TEXT, _form_text TEXT) RETURNS JSONB
 AS $$
   DECLARE rc TEXT;
   DECLARE secret TEXT;
@@ -2065,7 +2200,7 @@ BEGIN
 
     select [[tbl-prefix]]_[[tbl-fields.context:form.{{name}}]]
     into rc_form
-    from [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+    from [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
     where [[tbl-prefix]]_[[api-form.context:uuid-TEXT.{{name}}]]= _id;
 
     if rc_form is NULL then
@@ -2078,16 +2213,17 @@ BEGIN
 END;  $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION
-  [[LB_DB_PREFIX]]_schema.[[api-name]](
+  [[LB_PROJECT_prefix]]_schema.[[api-name]](
   TEXT, TEXT
   ) TO anonymous;
 
+[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_PROJECT_prefix}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]
 
 '''.split('\n')
  
     def getDictionary(self):
         return \
-			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "app", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "anonymous"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "app"}, {"name": "app-name", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-app"}, {"name": "version", "context": "version", "type": "TEXT", "default": "1.0.0", "json": "CR"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}, {"name": "token", "context": "token", "type": "TEXT", "json": "r", "function": "sign(_payload, _secret)"}], "api-test-forms": [{"type": "insert", "description": "'app - insert test'::TEXT", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.app( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"msg\": \"OK\", \"status\": \"200\"}'::JSONB"}, {"type": "select", "description": "'app - select from {{tbl-name}} by id and check token'::TEXT", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.app( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'"}]}
+			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "app", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "JSONB", "role": "api_user"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "app"}, {"name": "app-name", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-app"}, {"name": "version", "context": "version", "type": "TEXT", "default": "1.0.0", "json": "CR"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}, {"name": "token", "context": "token", "type": "TEXT", "json": "r", "function": "sign(_payload, _secret)"}], "api-test-forms": [{"type": "insert", "description": "'app - insert test'::TEXT", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.app( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"msg\": \"OK\", \"status\": \"200\"}'::JSONB"}, {"type": "select", "description": "'app - select from {{tbl-name}} by id and check token'::TEXT", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.app( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'"}]}
         
 ##########
 ##########
@@ -2102,23 +2238,24 @@ class Template_RegisterUserInterfaceTestPgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'interface-test.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '99.register-user.interface-test.pg.sql'
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 BEGIN;
   SELECT plan(2);
 
   -- insert
-  SELECT [[api-test-forms..type:insert..is ( {{LB_DB_PREFIX}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]
+  SELECT [[api-test-forms..type:insert..is ( {{LB_PROJECT_prefix}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]
 
   -- select
-  SELECT [[api-test-forms..type:select..matches( {{LB_DB_PREFIX}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]
+  SELECT [[api-test-forms..type:select..matches( {{LB_PROJECT_prefix}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]
 
   SELECT * FROM finish();
 
@@ -2127,7 +2264,7 @@ ROLLBACK;
  
     def getDictionary(self):
         return \
-			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "user", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "anonymous"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "user"}, {"name": "app-id", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-test-app@1.0.0"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}], "api-test-forms": [{"type": "insert", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.user( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "user", "app-id": "my-test-app@1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"status\": \"200\", \"msg\": \"ok\"}'::JSONB", "description": "'user - insert test'::TEXT"}, {"type": "select", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.user( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'", "description": "'user - select from {{tbl-name}} by id and check token'::TEXT"}]}
+			{"description": ["Single table multiple interfaces"], "type": "interface", "db-prefix": "reg", "tbl-name": "register", "tbl-prefix": "reg", "tbl-tests": ["api"], "tbl-roles": ["registrant"], "dep-api-overwrite": "0", "dep-api-name": "register", "dep-api-table": "register", "dep-api-methods": ["upsert", "select"], "tbl-fields": [{"name": "id", "context": "pk", "type": "TEXT", "crud": "RI", "search-context": "text"}, {"name": "type", "context": "type", "type": "TEXT", "crud": "CRI", "search-context": "type"}, {"name": "form", "context": "form", "description": "JSON record", "type": "JSONB", "crud": "FR"}, {"name": "password", "context": "password", "description": "Passwords are stored in table row, but not in json row", "type": "TEXT", "crud": "Cu", "calculate": "encrypt(_password)"}, {"name": "active", "context": "active", "type": "BOOLEAN", "default": "true", "crud": "ru"}, {"name": "created", "context": "created", "type": "TIMESTAMP", "crud": "r"}, {"name": "updated", "context": "updated", "type": "TIMESTAMP", "crud": "r"}], "api-overwrite": "0", "api-name": "user", "api-table": "register", "api-methods": ["upsert", "select", "test"], "api-role": "anonymous", "api-version": "1.0.0", "api-privileges": [{"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, TEXT", "role": "anonymous"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, JSONB", "role": "api_user"}, {"privilege": "EXECUTE", "type": "FUNCTION", "parameters": "TEXT, TEXT", "role": "api_user"}], "api-form": [{"name": "id", "context": "pk", "type": "TEXT", "json": "RI", "search": "uuid", "calculated": "uuid_generate_v4()"}, {"name": "type", "context": "type", "type": "TEXT", "json": "CRI", "const": "user"}, {"name": "app_id", "context": "name", "type": "TEXT", "json": "CRI", "default": "my-test-app@1.0.0"}, {"name": "username", "context": "email", "type": "TEXT", "json": "Cru"}, {"name": "password", "context": "password", "description": ["Passwords are stored in table row, but not in json row", "Remove the password from form before inserting", "Remove the password from form before updating"], "type": "TEXT", "json": "CuD"}], "api-test-forms": [{"type": "insert", "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.user( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}})", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"type": "user", "app_id": "my-test-app@1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}, "expected": "'{\"status\": \"200\", \"msg\": \"ok\"}'::JSONB", "description": "'user - insert test'::TEXT"}, {"type": "select", "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.user( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]", "token": "sign('{{pattern}}'::json, {{password}} )", "pattern": {"username": "testuser@register.com", "role": "anonymous"}, "password": "current_setting('app.jwt_secret')", "form": {"id": "my-test-app@1.0.0"}, "expected": "'[a-zA-Z\\.0-9_]+'", "description": "'user - select from {{tbl-name}} by id and check token'::TEXT"}]}
         
 ##########
 ##########
@@ -2142,46 +2279,47 @@ class Template_DbDatabasePgJson(Template):
         super().process()
         print('{}'.format('\n'.join(self)))
         self.copy(self.getOutputFolder(), self.getOutputName())
+        self.permissions(self.getOutputFolder(), self.getOutputName())
         return self
  
     def getInputTemplate(self): return 'database.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/testing/code/01-register/#05.refactor.api/register/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
     def getOutputName(self): return '01.db.database.pg.sql'
     def getTemplateList(self):
         return '''
 \c postgres
 
-DROP DATABASE IF EXISTS [[LB_DB_PREFIX]]_db;
+DROP DATABASE IF EXISTS [[LB_PROJECT_prefix]]_db;
 
-CREATE DATABASE [[LB_DB_PREFIX]]_db;
+CREATE DATABASE [[LB_PROJECT_prefix]]_db;
 
 -- SET DB
 
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
-create schema if not exists [[LB_DB_PREFIX]]_schema;
+create schema if not exists [[LB_PROJECT_prefix]]_schema;
 [[db-extensions.*:*.CREATE EXTENSION IF NOT EXISTS {{name}};.; ]]
 -- db-extensions
 
-SET search_path TO [[LB_DB_PREFIX]]_schema, public; -- put everything in [[LB_DB_PREFIX]]_schema;
+SET search_path TO [[LB_PROJECT_prefix]]_schema, public; -- put everything in [[LB_PROJECT_prefix]]_schema;
 
 -- the following should be set by the admin manually, it is set here for convenience
 -- models
-[[models.*:*.ALTER DATABASE {{LB_DB_PREFIX}}_db SET "{{app-key}}" TO \'{{model}}\';]]
+[[models.*:*.ALTER DATABASE {{LB_PROJECT_prefix}}_db SET "{{app-key}}" TO \'{{model}}\';]]
 
-ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.jwt_secret" TO '[[LB_JWT_PASSWORD]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.jwt_secret" TO '[[LB_REGISTER_JWT_MODEL_password]]';
 /*
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_jwt" TO '[[LB_REGISTER_JWT]]';
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_anonymous" TO '[[LB_REGISTER_GUEST]]';
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_editor" TO '[[LB_REGISTER_EDITOR]]';
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_registrant" TO '[[LB_REGISTER_REGISTRANT]]';
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_registrar" TO '[[LB_REGISTER_REGISTRAR]]';
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_testuser" TO '[[LB_REGISTER_TESTUSER]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_jwt" TO '[[LB_REGISTER_JWT_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_anonymous" TO '[[LB_REGISTER_GUEST_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_editor" TO '[[LB_REGISTER_EDITOR_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_registrant" TO '[[LB_REGISTER_REGISTRANT_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_registrar" TO '[[LB_REGISTER_REGISTRAR_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_testuser" TO '[[LB_TEST_USER]]';
 
-ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_web_anonymous" TO 'LB_WEB_ANONYMOUS]]';
-ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_web_anonymous_role" TO 'LB_WEB_ANONYMOUS_ROLE]]';
-ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_web_anonymous_password" TO 'LB_WEB_ANONYMOUS_PASSWORD]]';
-ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_admin_registrar_password" TO 'LB_ADMIN_REGISTRAR_PASSWORD]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_web_anonymous" TO 'LB_WEB_ANONYMOUS]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_web_anonymous_role" TO 'LB_WEB_ANONYMOUS_ROLE]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_web_anonymous_password" TO 'LB_WEB_ANONYMOUS_PASSWORD]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_admin_registrar_password" TO 'LB_ADMIN_REGISTRAR_PASSWORD]]';
 */
 
 /*
@@ -2207,13 +2345,13 @@ $BODY$
 			    "db-type-abbr": "pg",
 			    "type": "database",
 			    "db-extensions": [{"name": "pgcrypto"}, {"name": "pgtap"}, {"name": "pgjwt"}, {"name": "\"uuid-ossp\""}],
-			    "model-template": "[[models.*:*.ALTER DATABASE {{LB_DB_PREFIX}}_db SET \"{{app-key}}\" TO '{{model}}';]]",
+			    "model-template": "[[models.*:*.ALTER DATABASE {{LB_PROJECT_prefix}}_db SET \"{{app-key}}\" TO '{{model}}';]]",
 			
 			    "models": [
 			
 			        {
 			            "type": "model",
-			            "env-key": "LB_REGISTER_JWT",
+			            "env-key": "LB_REGISTER_JWT_MODEL",
 			            "app-key": "app.lb_register_jwt",
 			            "description": ["JSON WEB Token"],
 			            "model": {
@@ -2235,7 +2373,7 @@ $BODY$
 			        },
 			        {
 			            "type": "model",
-			            "env-key": "LB_REGISTER_EDITOR",
+			            "env-key": "LB_REGISTER_EDITOR_MODEL",
 			            "app-key": "app.lb_register_editor",
 			            "description": ["define me"],
 			            "model": {"username":"editor@register.com",
@@ -2245,7 +2383,7 @@ $BODY$
 			        },
 			        {
 			            "type": "model",
-			            "env-key": "LB_REGISTER_REGISTRANT",
+			            "env-key": "LB_REGISTER_REGISTRANT_MODEL",
 			            "app-key": "app.lb_register_registrant",
 			            "description": ["define me"],
 			            "model": {"username":"registrant@register.com",
@@ -2255,7 +2393,7 @@ $BODY$
 			        },
 			        {
 			            "type": "model",
-			            "env-key": "LB_REGISTER_REGISTRAR",
+			            "env-key": "LB_REGISTER_REGISTRAR_MODEL",
 			            "app-key": "app.lb_register_registrar",
 			            "description": ["define me"],
 			            "model": {"username":"registrar@register.com",
@@ -2265,7 +2403,7 @@ $BODY$
 			        },
 			        {
 			            "type": "model",
-			            "env-key": "LB_REGISTER_TESTUSER",
+			            "env-key": "LB_TEST_USER",
 			            "app-key": "app.lb_register_testuser",
 			            "description": ["define me"],
 			            "model": {"type":"app",
@@ -2299,9 +2437,11 @@ def main():
     Template_NuxtjsAdminScriptShShJson()
     Template_UpScriptShShJson()
     Template__confScriptShShJson()
+    Template_DbScriptShShJson()
     Template_AuthenticatorRolePgJson()
     Template_AnonymousRolePgJson()
     Template_EditorRolePgJson()
+    Template_Api_userRolePgJson()
     Template_Get_idFunctionPgJson()
     Template_Is_valid_tokenFunctionPgJson()
     Template_Get_app_idFunctionPgJson()

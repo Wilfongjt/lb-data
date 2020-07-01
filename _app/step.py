@@ -26,7 +26,7 @@ class Step(Link):
         self.copyFile = None
         self.default_folder = None  # '{}/temp'.format(str(Path.home()))
         self.child_folder_dict = AppSettings().getProjectFolders()
-        # self.lbproject_name = os.getenv('LB_PROJECT_NAME') or 'example'
+        # self.lbproject_name = os.getenv('LB_PROJECT_name') or 'example'
         #self.lbproject_name =
         self.working_folder_name_default = 'example'
         self.env_default = 'dev'
@@ -38,16 +38,16 @@ class Step(Link):
         # collect env variables
         self.set('LB_ENV', self.env_default)
         self.set('LB_WORKING_FOLDER_NAME', self.working_folder_name_default)
-        self.set('LB_PROJECT_NAME', 'example')
+        self.set('LB_PROJECT_name', 'example')
 
-        #if os.getenv('LB_SECRET_PASSWORD') == None:
-        #    raise Exception('Please set environment variable LB_SECRET_PASSWORD')
+        #if os.getenv('LB_DB_MODEL_password') == None:
+        #    raise Exception('Please set environment variable LB_DB_MODEL_password')
 
-        if os.getenv('LB_POSTGRES_PASSWORD') == None:
-            raise Exception('Please set environment variable LB_POSTGRES_PASSWORD')
+        if os.getenv('LB_POSTGRES_MODEL_password') == None:
+            raise Exception('Please set environment variable LB_POSTGRES_MODEL_password')
 
-        if os.getenv('LB_POSTGRES_PASSWORD') == None:
-            raise Exception('Please set environment variable LB_JWT_PASSWORD')
+        if os.getenv('LB_REGISTER_JWT_MODEL_password') == None:
+            raise Exception('Please set environment variable LB_REGISTER_JWT_MODEL_password')
 
         # find resource-folder
         # add resource-folder path to data
@@ -61,7 +61,7 @@ class Step(Link):
                 #print('STEP',v,os.getenv(v))
         # find projects-folder
 
-        self.getData()['working-folder'] = self.appSettings.getFolder('working-folder')
+        self.getData()['working_folder'] = self.appSettings.getFolder('working_folder')
         self.getData()['shared-folder'] = self.appSettings.getFolder('shared-folder')
         self.getData()['projects-folder'] = self.appSettings.getFolder('projects-folder')
 

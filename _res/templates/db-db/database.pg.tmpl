@@ -1,36 +1,36 @@
 \c postgres
 
-DROP DATABASE IF EXISTS [[LB_DB_PREFIX]]_db;
+DROP DATABASE IF EXISTS [[LB_PROJECT_prefix]]_db;
 
-CREATE DATABASE [[LB_DB_PREFIX]]_db;
+CREATE DATABASE [[LB_PROJECT_prefix]]_db;
 
 -- SET DB
 
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
-create schema if not exists [[LB_DB_PREFIX]]_schema;
+create schema if not exists [[LB_PROJECT_prefix]]_schema;
 [[db-extensions.*:*.CREATE EXTENSION IF NOT EXISTS {{name}};.; ]]
 -- db-extensions
 
-SET search_path TO [[LB_DB_PREFIX]]_schema, public; -- put everything in [[LB_DB_PREFIX]]_schema;
+SET search_path TO [[LB_PROJECT_prefix]]_schema, public; -- put everything in [[LB_PROJECT_prefix]]_schema;
 
 -- the following should be set by the admin manually, it is set here for convenience
 -- models
-[[models.*:*.ALTER DATABASE {{LB_DB_PREFIX}}_db SET "{{app-key}}" TO \'{{model}}\';]]
+[[models.*:*.ALTER DATABASE {{LB_PROJECT_prefix}}_db SET "{{app-key}}" TO \'{{model}}\';]]
 
-ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.jwt_secret" TO '[[LB_JWT_PASSWORD]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.jwt_secret" TO '[[LB_REGISTER_JWT_MODEL_password]]';
 /*
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_jwt" TO '[[LB_REGISTER_JWT]]';
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_anonymous" TO '[[LB_REGISTER_GUEST]]';
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_editor" TO '[[LB_REGISTER_EDITOR]]';
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_registrant" TO '[[LB_REGISTER_REGISTRANT]]';
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_registrar" TO '[[LB_REGISTER_REGISTRAR]]';
-x ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_register_testuser" TO '[[LB_REGISTER_TESTUSER]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_jwt" TO '[[LB_REGISTER_JWT_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_anonymous" TO '[[LB_REGISTER_GUEST_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_editor" TO '[[LB_REGISTER_EDITOR_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_registrant" TO '[[LB_REGISTER_REGISTRANT_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_registrar" TO '[[LB_REGISTER_REGISTRAR_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_testuser" TO '[[LB_TEST_USER]]';
 
-ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_web_anonymous" TO 'LB_WEB_ANONYMOUS]]';
-ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_web_anonymous_role" TO 'LB_WEB_ANONYMOUS_ROLE]]';
-ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_web_anonymous_password" TO 'LB_WEB_ANONYMOUS_PASSWORD]]';
-ALTER DATABASE [[LB_DB_PREFIX]]_db SET "app.lb_admin_registrar_password" TO 'LB_ADMIN_REGISTRAR_PASSWORD]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_web_anonymous" TO 'LB_WEB_ANONYMOUS]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_web_anonymous_role" TO 'LB_WEB_ANONYMOUS_ROLE]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_web_anonymous_password" TO 'LB_WEB_ANONYMOUS_PASSWORD]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_admin_registrar_password" TO 'LB_ADMIN_REGISTRAR_PASSWORD]]';
 */
 
 /*

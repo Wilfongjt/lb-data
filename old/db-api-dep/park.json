@@ -36,7 +36,7 @@
           "const": "app"
         },
         {
-          "name": "app-id",
+          "name": "app_id",
           "context": "name",
           "type": "TEXT",
           "json": "CRI",
@@ -72,7 +72,7 @@
           "password": "current_setting('app.jwt_secret')",
           "form": {
             "type": "app",
-            "app-id": "my-test-app@1.0.0",
+            "app_id": "my-test-app@1.0.0",
             "username": "testuser@register.com",
             "email": "test@register.com",
             "password": "g1G!gggg",

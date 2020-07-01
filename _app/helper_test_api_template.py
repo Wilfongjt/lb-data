@@ -54,7 +54,7 @@ class HelperTestAPITemplate(Helper):
             raise Exception('Table Dictionary is not set!')
 
         print("  - Table: {}".format(self.dictionary['tbl-name']))
-        self.lines.append('\c {}_db'.format(self.get('LB_DB_PREFIX')))
+        self.lines.append('\c {}_db'.format(self.get('LB_PROJECT_prefix')))
 
         self.lines.append('select \'##### {} TESTS\';'.format(self.get('tbl-name')))
         self.lines.append('BEGIN;')
@@ -147,7 +147,7 @@ class HelperTestAPITemplate(Helper):
             self.lines.append('  select \'############################################## INSERTS {}\';'.format('-'.join(combo)))
 
             self.lines.append('  SELECT is (')
-            self.lines.append('    {}_schema.{}('.format(self.get('LB_DB_PREFIX'), self.get('api-name')))
+            self.lines.append('    {}_schema.{}('.format(self.get('LB_PROJECT_prefix'), self.get('api-name')))
             self.lines.append('      sign(\'{"username":"testuser@register.com","role":"registrant"}\'::json, current_setting(\'app.jwt_secret\')),')
 
             attribs = ['"{}":"{}"'.format(a, self.getGood(a)) for a in combo['combo']]
@@ -205,8 +205,8 @@ class HelperTestAPITemplate(Helper):
         self.lines.append('  select \'######################################## INSERT {}\';')
 
         self.lines.append('  SELECT is (')
-        #self.lines.append('    {}_schema.{}('.format(self.get('LB_DB_PREFIX'), self.get('api-name')))
-        self.lines.append('    {}_schema.{}('.format(self.get('LB_DB_PREFIX'), self.dictionary['interfaces'][formkey]['name']))
+        #self.lines.append('    {}_schema.{}('.format(self.get('LB_PROJECT_prefix'), self.get('api-name')))
+        self.lines.append('    {}_schema.{}('.format(self.get('LB_PROJECT_prefix'), self.dictionary['interfaces'][formkey]['name']))
 
         self.lines.append('      sign(\'{"username":"testuser@register.com","role":"registrant"}\'::json, current_setting(\'app.jwt_secret\')),')
 

@@ -3,8 +3,8 @@ source ./_conf.sh
 
 # keep stuff from build docker system prune
 
-echo "${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
-cd ${LB_APP_NAME}/
+echo "${LB_ENV_data_folder}/${LB_PROJECT_prefix}_db"
+cd ${LB_PROJECT_name}/
 docker-compose down
 docker system prune
 
@@ -14,7 +14,7 @@ ls
 if [ ! -f 'web/.env' ] ; then
   echo "  "
   echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  echo "   You must setup an .env file in ${LB_REPONAME}/"
+  echo "   You must setup an .env file in ${LB_PROJECT_name}/"
   echo "       Terminating script."
   echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
   echo "  "
@@ -23,13 +23,13 @@ fi
 
 #docker-compose down
 
-echo "${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
-if [ -d "${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db" ]; then
-  echo "Deleting... ${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
-  rm -rv "${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
-  echo "... Deleted ${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
+echo "${LB_ENV_data_folder}/db"
+if [ -d "${LB_ENV_data_folder}/db" ]; then
+  echo "Deleting... ${LB_ENV_data_folder}/db"
+  rm -rv "${LB_ENV_data_folder}/db"
+  echo "... Deleted ${LB_ENV_data_folder}/db"
 else
-  echo "Not found ${LB_DATA_FOLDER}/${LB_DB_PREFIX}_db"
+  echo "Not found ${LB_ENV_data_folder}/db"
 fi
 
 # build everything from scratch...slow but works

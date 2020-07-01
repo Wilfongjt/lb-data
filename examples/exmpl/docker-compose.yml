@@ -1,0 +1,126 @@
+
+version: '3'
+# docker-compose up
+# ref: http://postgrest.org/en/v6.0/install.html#docker
+# ref: https://github.com/mattddowney/compose-postgrest/blob/master/docker-compose.yml
+# Issue:  'password authentication failed for user "postgres"'
+# Resolution:  then delete the database instance and rerun docker-compose up
+# Trouble: Environment variables
+# Solution: add .env in same folder as this yml.  include same name variables as those in environment section
+
+services:
+  #admin:
+  #  container_name: admin
+  #  image: wilfongjt/admin
+  #  build:
+  #    context: ./admin
+  #    dockerfile: dockerfile-admin
+  #  command: >
+  #    bash -c "npm install && npm run dev"
+  #  volumes:
+  #    - ./admin:/usr/src
+  #  ports:
+  #    - "3200:3000"
+  #web:
+  #  container_name: web
+  #  image: wilfongjt/web
+  #  build:
+  #    context: ./web
+  #    dockerfile: dockerfile-web
+  #  command: >
+  #    bash -c "npm install && npm run dev"
+  #  volumes:
+  #    - ./web:/usr/src
+  #  ports:
+  #    - "3000:3000"
+
+  #############
+  # POSTGRES
+  #########
+
+  db:
+    # env_file:
+    #     - pg.env
+    # create a .env to hold env vars ... see below
+    build:
+        context: ./db
+        dockerfile: dockerfile-db
+    ports:
+      - "5433:5432"
+    environment: # ${} are defined in .env found in docker-config.yml folder
+      - POSTGRES_DB=exmpl_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+      #- POSTGRES_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+      #- POSTGRES_JWT-SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+      #- JWT-SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+      #- JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+
+      #- DB_ANON_ROLE={DB_ANON_ROLE}
+      #- DB_SCHEMA={DB_SCHEMA}
+      #- DB_NAME=postgres
+      #- DB_USER={DB_USER}
+      #- DB_PASS={DB_PASS}
+
+    volumes:
+      # anything in initdb directory is created in the database
+      # see "How to extend this image" section at https://hub.docker.com/r/_/postgres/
+      #      - "./exmpl-db/pg-database/db-scripts/compiled-scripts:/docker-entrypoint-initdb.d"
+
+      - "./db/sql:/docker-entrypoint-initdb.d"
+
+      # Uncomment this if you want to persist the data.
+
+      #- "~/.data/exmpl_db/pgdata:/var/lib/postgresql/data"
+
+    networks:
+      - postgrest-backend
+
+    restart: always
+
+  ##########
+  # POSTGRREST
+  #####
+
+  api:
+    # http://postgrest.org/en/v7.0.0/tutorials/tut0.html
+    #container_name: postgrest
+    image: postgrest/postgrest:latest
+
+    ports:
+      - "3100:3000"
+
+    environment:
+      # The standard connection URI format, documented at
+      # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
+      # put
+      - PGRST_DB_URI=postgres://authenticator:mysecretpassword@db:5432/exmpl_db
+      - PGRST_DB_SCHEMA=exmpl_schema
+      - PGRST_DB_ANON_ROLE=api_guest
+      - PGRST_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+      #- PGRST_JWT-SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+      #- JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+      #- JWT-SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+
+      #PGRST_DB_URI: postgres://postgres:     {DB_PASS}@db:5432/exmpl_db
+      #PGRST_DB_SCHEMA: {DB_SCHEMA}
+      #PGRST_DB_ANON_ROLE: {DB_ANON_ROLE}
+      #PGRST_DB_URI: postgres://postgres:   {LB_POSTGRES_MODEL_password}@db:5432/exmpl_db
+      #PGRST_DB_SCHEMA: exmpl_schema
+      #PGRST_DB_ANON_ROLE:    {LB_DB_MODEL_role}
+
+    depends_on:
+      - db
+
+    links:
+      - db:db
+
+    networks:
+      - postgrest-backend
+
+    restart: always
+
+networks:
+  postgrest-backend:
+    driver: bridge
+

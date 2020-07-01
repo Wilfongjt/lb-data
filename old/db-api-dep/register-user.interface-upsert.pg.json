@@ -102,12 +102,12 @@
             "type": "insert",
             "pattern": {
                 "username": "testuser@register.com",
-                "app-id": "my-test-app@1.0.0",
+                "app_id": "my-test-app@1.0.0",
                 "role": "registrar"
             },
             "form": {
                 "type": "user",
-                "app-id": "my-test-app",
+                "app_id": "my-test-app",
                 "version": "1.0.0",
                 "username": "testuser@register.com",
                 "email": "test@register.com",
@@ -120,7 +120,7 @@
             "form": {
                 "id": "xxxxxxx",
                 "type": "user",
-                "app-id": "my-test-app",
+                "app_id": "my-test-app",
                 "version": "1.0.0",
                 "username": "testuser@register.com",
                 "email": "test@register.com",

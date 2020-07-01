@@ -11,7 +11,7 @@ class AppInitialize(Step):
         super().__init__()
         #'LB_ENV', self.env_default)
         #self.set('LB_WORKING_FOLDER_NAME', self.working_folder_name_default)
-        #self.set('LB_PROJECT_NAME', 'example')
+        #self.set('LB_PROJECT_name', 'example')
         self.description=[
             'Copies files from res/shared to {}'.format(self.get('LB_WORKING_FOLDER_NAME'))
         ]
@@ -43,9 +43,9 @@ def main():
     appSettings.createAppFolders()
 
     step = AppInitialize().run()
-    #    shared_folder = '{}/..LyttleBit/testing/shared'.format(appSettings.getHomeFolder()) #'{}/shared'.format(step.getFolder('working-folder'))
+    #    shared_folder = '{}/..LyttleBit/testing/shared'.format(appSettings.getHomeFolder()) #'{}/shared'.format(step.getFolder('working_folder'))
 
-    shared_folder = '{}/..LyttleBit/testing/shared'.format(appSettings.getHomeFolder()) #'{}/shared'.format(step.getFolder('working-folder'))
+    shared_folder = '{}/..LyttleBit/testing/shared'.format(appSettings.getHomeFolder()) #'{}/shared'.format(step.getFolder('working_folder'))
     exp_file = 'context.template.list.json'
     #print('  - copy {}'.format(exp_file))
 

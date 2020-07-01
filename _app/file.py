@@ -63,6 +63,9 @@ class ListFile(list):
 
     def copy(self, folder, filename):
         print('A copy {} {} {}'.format(self.getClassName(), folder, filename))
+        if not Util().folder_exists(folder):
+            Util().createFolder(folder)
+
         with open('{}/{}'.format(folder, filename), 'w') as f:
             for line in self:
                 #print('write', line)

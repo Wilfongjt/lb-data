@@ -4,11 +4,11 @@ def test_db():
     "db-type-abbr": "pg",
     "type": "database",
     "db-extensions": [{"name": "pgcrypto"}, {"name": "pgtap"}, {"name": "pgjwt"}, {"name": "\"uuid-ossp\""}],
-    "model-template": "[[models.*:*.ALTER DATABASE {{LB_DB_PREFIX}}_db SET \"{{app-key}}\" TO '{{model}}';]]",
+    "model-template": "[[models.*:*.ALTER DATABASE {{LB_PROJECT_prefix}}_db SET \"{{app-key}}\" TO '{{model}}';]]",
     "models": [
         {
             "type": "role",
-            "env-key": "LB_REGISTER_JWT",
+            "env-key": "LB_REGISTER_JWT_MODEL",
             "app-key": "app.lb_register_jwt",
             "description": ["JSON WEB Token"],
             "model": {
@@ -20,7 +20,7 @@ def test_db():
         },
         {
             "type": "role",
-            "env-key": "LB_REGISTER_GUEST",
+            "env-key": "LB_REGISTER_GUEST_MODEL",
             "app-key": "app.lb_register_anonymous",
             "description": ["define me"],
             "model":{"username":"anonymous@register.com",
@@ -30,7 +30,7 @@ def test_db():
         },
         {
             "type": "role",
-            "env-key": "LB_REGISTER_REGISTRANT",
+            "env-key": "LB_REGISTER_REGISTRANT_MODEL",
             "app-key": "app.lb_register_editor",
             "description": ["define me"],
             "model": {"username":"registrant@register.com",
@@ -40,7 +40,7 @@ def test_db():
         },
         {
             "type": "role",
-            "env-key": "LB_REGISTER_EDITOR",
+            "env-key": "LB_REGISTER_EDITOR_MODEL",
             "app-key": "app.lb_register_registrant",
             "description": ["define me"],
             "model": {"username":"editor@register.com",
@@ -50,7 +50,7 @@ def test_db():
         },
         {
             "type": "role",
-            "env-key": "LB_REGISTER_REGISTRAR",
+            "env-key": "LB_REGISTER_REGISTRAR_MODEL",
             "app-key": "app.lb_register_registrar",
             "description": ["define me"],
             "model": {"username":"registrar@register.com",
@@ -60,7 +60,7 @@ def test_db():
         },
         {
             "type": "role",
-            "env-key": "LB_REGISTER_TESTUSER",
+            "env-key": "LB_TEST_USER",
             "app-key": "app.lb_register_testuser",
             "description": ["define me"],
             "model": {"type":"app",
@@ -198,7 +198,7 @@ def test_table():
 
             "test-forms": [
                 {"type": "insert",
-                    "template": "is ( {{LB_DB_PREFIX}}_schema.{{api-name}}( {{token}}, {{form}} ), {{expected}}, {{description}} )",
+                    "template": "is ( {{LB_PROJECT_prefix}}_schema.{{api-name}}( {{token}}, {{form}} ), {{expected}}, {{description}} )",
                     "token":"sign('{{pattern}}', {{password}})",
                     "pattern":   {
                         "username":"testuser@register.com",
@@ -218,7 +218,7 @@ def test_table():
                     "description": "'app - insert test'::TEXT"
                 },
                 {"type": "select",
-                    "template": "( matches( {{LB_DB_PREFIX}}_schema.{{api-name}}( {{token}}, {{form}} )::JSONB, {{expected}}, {{description}} )::JSONB ->> 'result' ) ->> 'token'",
+                    "template": "( matches( {{LB_PROJECT_prefix}}_schema.{{api-name}}( {{token}}, {{form}} )::JSONB, {{expected}}, {{description}} )::JSONB ->> 'result' ) ->> 'token'",
                     "token":"sign('{{pattern}}', {{password}} )",
                     "pattern": {
                         "username":"testuser@register.com",
@@ -269,7 +269,7 @@ def test_table():
                     "const": "user"
                 },
                 {
-                    "name": "app-id",
+                    "name": "app_id",
                     "context": "name",
                     "type": "TEXT",
                     "json": "CRI",
@@ -305,7 +305,7 @@ def test_table():
                     "password": "current_setting('app.jwt_secret')",
                     "form": {
                         "type": "user",
-                        "app-id": "my-test-app@1.0.0",
+                        "app_id": "my-test-app@1.0.0",
                         "username": "testuser@register.com",
                         "email": "test@register.com",
                         "password": "g1G!gggg",
@@ -336,16 +336,16 @@ def test_table():
 def test_table_template():
     return '''
 ---- SET DB
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 -- TABLE
 create table if not exists
-[[LB_DB_PREFIX]]_schema.[[tbl-name]] (
+[[LB_PROJECT_prefix]]_schema.[[tbl-name]] (
   <<table-fields>>
 );
 
 -- INDEXxxx
---CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id int4_ops);
---CREATE UNIQUE INDEX [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
+--CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id int4_ops);
+--CREATE UNIQUE INDEX [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
 -- TRIGGER FUNCTION
 CREATE OR REPLACE FUNCTION [[tbl-prefix]]_ins_upd_trigger_func() RETURNS trigger
 AS $$
@@ -379,18 +379,18 @@ END; $$ LANGUAGE plpgsql;
 
 -- TRIGGER
 CREATE TRIGGER [[tbl-prefix]]_ins_upd_trigger
- BEFORE INSERT ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+ BEFORE INSERT ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
  FOR EACH ROW
  EXECUTE PROCEDURE [[tbl-prefix]]_ins_upd_trigger_func();    
     '''.split('\n')
 
 def test_upsert_template():
     return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 -- gen from default tmpl
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
+[[LB_PROJECT_prefix]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
 AS $$
   Declare rc jsonb;
   Declare _cur_row JSONB;
@@ -403,7 +403,7 @@ AS $$
     _model_user := current_setting('app.lb_register_[[api-role]]')::jsonb;
 
     -- figure out which token: app-token or user-token
-    if [[LB_DB_PREFIX]]_schema.is_valid_token(_token, _model_user ->> 'role') then
+    if [[LB_PROJECT_prefix]]_schema.is_valid_token(_token, _model_user ->> 'role') then
 		rc := '{"result":"1"}'::JSONB;
     else
         return '{"result": "0"}'::JSONB;
@@ -416,7 +416,7 @@ AS $$
 		-- get current json object
 		select [[tbl-prefix]]_[[tbl-fields.context:form.{{name}}]] as _usr
 		  into _cur_row
-		  from [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+		  from [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
 		  where [[tbl-prefix]]_[[api-form.context:uuid.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:uuid.{{name}}]]' as UUID) and [[tbl-prefix]]_[[api-form.context:type.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:type.{{name}}]]' as TEXT);
 
         rc := '{"result":"-2.1"}'::JSONB;
@@ -481,7 +481,7 @@ AS $$
 
 			rc := '{"result":"1"}'::JSONB;
 
-			INSERT INTO [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+			INSERT INTO [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
                 ([[tbl-fields.crud:(CF).{{tbl-prefix}}_{{name}}., ]])
               VALUES
                 ([[tbl-fields.crud:(CF)._{{name}}., ]] );
@@ -500,7 +500,7 @@ AS $$
 $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION
-  [[LB_DB_PREFIX]]_schema.[[api-name]](
+  [[LB_PROJECT_prefix]]_schema.[[api-name]](
   TEXT, JSONB
   ) TO anonymous;    
     '''

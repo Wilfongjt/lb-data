@@ -1,0 +1,38 @@
+#source ./__scripts/00.settings.sh
+source ./git.config.sh
+if [ ! -f git.config.sh ]; then
+  echo "Undefined git.config.sh file"
+  echo "Example:"
+  echo "export GIT_BRANCH=<git branch name>"
+  echo "export GIT_PROJECT=<git repo name>"
+  echo "export GIT_PREFIX=<git abbreviation of repo name>"
+  echo "export GIT_OWNERNAME=<git owner name>"
+  exit 1
+fi
+
+if [ ! -d ${GIT_BRANCH}  ]; then
+  # make the branch
+  mkdir ${GIT_BRANCH}/
+fi
+
+cd ${GIT_BRANCH}/
+
+if [ ! -f config.sh ]; then
+    echo "export MY_BRANCH=${GIT_BRANCH}" > config.sh
+    echo "export MY_APPNAME=${GIT_PROJECT}" >> config.sh
+    echo "export MY_PREFIX=${GIT_PREFIX}" >> config.sh
+    echo "export MY_GIT_OWNERNAME=${GIT_OWNERNAME}" >> config.sh
+    echo "export MY_GIT_PROJECT=${GIT_PROJECT}" >> config.sh
+    echo "export MY_DATA_FOLDER=~/.data/${GIT_PREFIX}_db" >> config.sh
+
+fi
+
+if [ ! -d __scripts/ ]; then
+  echo "install _scripts/"
+  cp -r ../../../00-Setup/__scripts ./
+  cp ../../../00-Setup/*.sh ./
+fi
+
+if [ -f 01.git.sh ]; then
+  source ./01.git.sh
+fi

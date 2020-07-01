@@ -139,7 +139,7 @@ def main():
     print('conteskKey1', ContextKey('search-context', 'uuid') )
 
     assert ContextKey('search-context', 'uuid') == {'name': 'search-context', 'key': 'uuid'}
-    assert ContextKey('search-context', 'LB_PROJECT_PREFIX') == {'name': 'lyttlebit', 'key': 'LB_PROJECT_PREFIX'}
+    assert ContextKey('search-context', 'LB_PROJECT_prefix') == {'name': 'lyttlebit', 'key': 'LB_PROJECT_prefix'}
 
     contextKey=ContextKey('search-context', {
         "name": "id",
@@ -147,12 +147,12 @@ def main():
         "type": "UUID",
         "crud": "RI"
     })
-    lb_contextKey = ContextKey('lyttlebit', 'LB_PROJECT_PREFIX')
+    lb_contextKey = ContextKey('lyttlebit', 'LB_PROJECT_prefix')
     pk_UUID_contextKey = {"name": "search-context", "key": "pk-UUID"}
 
     print('conteskKey2', contextKey)
     assert contextKey == {'name': 'search-context', 'key': 'pk-UUID'}
-    assert lb_contextKey == {'name': 'lyttlebit', 'key': 'LB_PROJECT_PREFIX'}
+    assert lb_contextKey == {'name': 'lyttlebit', 'key': 'LB_PROJECT_prefix'}
 
     #contextDict = ContextDict().read()
     contextDict = ContextDict()

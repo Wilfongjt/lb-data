@@ -14,22 +14,29 @@ class ParseTagToList(list):
 
     def __init__(self, parsable ):
         self.parsable = parsable
-        # print('ParseTagToList', parsable)
+        #print('ParseTagToList', parsable)
         # handle the [[name]] to [[None.None:None.{{}}]]
-        tag_pattern = re.compile('\[\[[a-z\-]+\]\]')
+        tag_pattern = re.compile('\[\[[a-zA-Z_\-\#]+\]\]')
         s = tag_pattern.match(parsable)
-        #print('s',s)
-        if s != None and s.group() == parsable:
-            self.parsable = self.parsable.replace('[[','[[None.None:None.{{').replace(']]','}}]]')
-
-        tag_pattern = re.compile('\[\[[A-Z\-_]+\]\]')
-        s = tag_pattern.match(parsable)
-
+        #print('as', s)
         if s != None and s.group() == parsable:
             self.parsable = self.parsable.replace('[[', '[[None.None:None.{{').replace(']]', '}}]]')
 
-        #print('ParseTagToList', self.parsable)
+        #tag_pattern = re.compile('\[\[[a-z\-\#]+\]\]')
+        #s = tag_pattern.match(parsable)
+        #print('as',s)
+        #if s != None and s.group() == parsable:
+        #    self.parsable = self.parsable.replace('[[','[[None.None:None.{{').replace(']]','}}]]')
 
+        #tag_pattern = re.compile('\[\[[A-Z\-_\#]+\]\]')
+        #s = tag_pattern.match(parsable)
+        #print('bs',s)
+
+        #if s != None and s.group() == parsable:
+        #    self.parsable = self.parsable.replace('[[', '[[None.None:None.{{').replace(']]', '}}]]')
+
+        #print('ParseTagToList', self.parsable)
+        #print('ParseTagToList', self)
 
         self.process()
 
@@ -42,12 +49,12 @@ class ParseTagToList(list):
 
 
     def parse(self):
-        # print('parse parsable', self.parsable)
+        #print('parse parsable', self.parsable)
         if '..' in self.parsable:
             parts = self.parsable.replace('[[', '').replace(']]', '').split('..')  # ['aaa','bbb:ccc','ddd']
         else:
             parts = self.parsable.replace('[[', '').replace(']]', '').split('.')  # ['aaa','bbb:ccc','ddd']
-
+        print('parts', parts)
         parts[1] = parts[1].split(':')
 
         # filter value is array when () are present
@@ -109,13 +116,13 @@ class MultiList(list):
             value = self.parseTagToList.getAttTmpl() # assume field dictionary doesnt have this value set a passthrough value
             #print('MultiList field_key',field_key)
             #print('os.environ',os.environ)
-            if field_key in tbl_dictionary:
+            if field_key in tbl_dictionary: # look in smaller list JSON
                 #print('B ')
                 value = tbl_dictionary[field_key] # tbl_dictionary is really a field_dictionary ... a subset of tbl_dictionary
             elif field_key in self.tbl_dictionary: # look in root of dictionary
                 #print('C ')
                 value = self.tbl_dictionary[field_key]
-            elif field_key in os.environ:
+            elif field_key in os.environ: # from .env
                 #print('D')
                 value = os.environ[field_key]
             else:
@@ -123,14 +130,14 @@ class MultiList(list):
                 _type = None
                 if 'type' in self.tbl_dictionary:
                     _type = self.tbl_dictionary['type']
-
+                #print('tbl_dictionary',tbl_dictionary)
                 raise Exception('Cannot find value for \'{}\' in "type":"{}". Add to your .env file, dictionary, initialize AppSettings object or modify template'.format(field_key, _type))
             #print('E ')
             self.append(value)
 
         elif self.parseTagToList.getFilterKey() == '*': # like ['*', '*']
-            print('F')
-            print('- F ', self.parseTagToList)
+            #print('F')
+            #print('- F ', self.parseTagToList)
             # all fields
             # eg '[[db-extensions.*:*.CREATE EXTENSION IF NOT EXISTS {{name}}.; ]]'
             #print('getListKey', self.parseTagToList.getListKey())
@@ -154,7 +161,7 @@ class MultiList(list):
             # print('dictioary', self.tbl_dictionary)
             for lyttle_dictionary in [f for f in self.tbl_dictionary[self.parseTagToList.getListKey()]
                 if self.parseTagToList.getFilterKey() in f and self.parseTagToList.getFilterValue() == f[self.parseTagToList.getFilterKey()]]:
-                self.append(self.templatize(self.parseTagToList.getAttTmpl(), lyttle_dictionary))
+                    self.append(self.templatize(self.parseTagToList.getAttTmpl(), lyttle_dictionary))
 
     def templatize(self, template_line, lyttle_dictionary):
         #print('templateize 5 {}'.format(template_line))
@@ -185,6 +192,12 @@ class MultiList(list):
                     v = os.environ[key_]
                     k = '{{' + key_ + '}}'
                     template_line = template_line.replace(k, str(v))
+                elif key_.startswith('lb_'):
+                    v = os.environ[key_]
+                    k = '{{' + key_ + '}}'
+                    #print('search key', key_)
+                    template_line = template_line.replace(k, str(v))
+
         if '{{' in template_line:
             raise Exception('Undefined tag {}'.format(template_line))
         #print('template_line', template_line)
@@ -209,6 +222,7 @@ def main():
 
     os.environ['LB-TESTING'] = '1'
     appSettings = AppSettingsTest()
+    pprint(appSettings)
     ##
     print('#########')
     parseList = ParseTagToList('[[tbl-name]]')
@@ -222,11 +236,11 @@ def main():
 
     # singleton environment
     '''
-    parseList = ParseTagToList('[[LB_SECRET_PASSWORD]]')
+    parseList = ParseTagToList('[[LB_DB_MODEL_password]]')
     print('K parseList', parseList)
     print('K MultiList', MultiList(parseList, test_table()))
     print('K toString', MultiList(parseList, test_table()).toString())
-    assert parseList == ['None', ['None', 'None'], '{{LB_SECRET_PASSWORD}}']
+    assert parseList == ['None', ['None', 'None'], '{{LB_DB_MODEL_password}}']
     assert MultiList(parseList, test_table()) == ['PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG']
     assert MultiList(parseList, test_table()).toString() == 'PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG'
     '''
@@ -349,12 +363,14 @@ def main():
     print('#########')
     #"[[tbl-fields.crud:(Cc).{{tbl-prefix}}_{{name}}., ]]"
     ##
-    parseList = ParseTagToList('[[api-test-forms..type:insert..select {{LB_DB_PREFIX}}_schema.{{api-name}}(\'{{form}}\'::TEXT);]]')
+    #    parseList = ParseTagToList('[[api-test-forms..type:insert..select {{LB_PROJECT_prefix}}_schema.{{api-name}}(\'{{form}}\'::TEXT);]]')
+
+    parseList = ParseTagToList('[[api-test-forms..type:insert..select {{LB_PROJECT_prefix}}_schema.{{api-name}}(\'{{form}}\'::TEXT);]]')
     print('L parseList', parseList)
     print('L MultiList', MultiList(parseList, InterfaceConfiguration('app').load(test_table())))
     print('L toString',  MultiList(parseList, InterfaceConfiguration('app').load(test_table())).toString())
 
-    assert parseList == ['api-test-forms', ['type', 'insert'], 'select {{LB_DB_PREFIX}}_schema.{{api-name}}(\'{{form}}\'::TEXT);']
+    assert parseList == ['api-test-forms', ['type', 'insert'], 'select {{LB_PROJECT_prefix}}_schema.{{api-name}}(\'{{form}}\'::TEXT);']
 
     #                                                                                 ['select reg_schema.app(\'{                           "type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}\'::TEXT);']
     assert MultiList(parseList, InterfaceConfiguration('app').load(test_table())) == ['select reg_schema.app(\'{"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}\'::TEXT);']
@@ -364,14 +380,12 @@ def main():
     print('#########')
     #"[[tbl-fields.crud:(Cc).{{tbl-prefix}}_{{name}}., ]]"
     ##
-    parseList = ParseTagToList('[[models.*:*.ALTER DATABASE {{LB_DB_PREFIX}}_db SET "{{app-key}}" TO \'{{model}}\';]]')
+    parseList = ParseTagToList('[[models.*:*.ALTER DATABASE {{LB_PROJECT_prefix}}_db SET "{{app-key}}" TO \'{{model}}\';]]')
     print('M parseList', parseList)
     print('M MultiList', MultiList(parseList, test_db()))
     print('M toString',  MultiList(parseList, test_db()).toString())
 
-    # assert parseList == ['model', ['*', '*'], 'ALTER DATABASE {{LB_DB_PREFIX}}_db SET "{{app-key}}" TO \'{{LB_JWT_PASSWORD}}\';']
-    #assert parseList == ['models', ['*', '*'], 'ALTER DATABASE {{LB_DB_PREFIX}}_db SET "{{app-key}}" TO \'{{model}}\';']
-    assert parseList == ['models', ['*', '*'], 'ALTER DATABASE {{LB_DB_PREFIX}}_db SET "{{app-key}}" TO \'{{model}}\';']
+    assert parseList == ['models', ['*', '*'], 'ALTER DATABASE {{LB_PROJECT_prefix}}_db SET "{{app-key}}" TO \'{{model}}\';']
 
     #assert MultiList(parseList, test_db()) == ['ALTER DATABASE reg_db SET "app.jwt_secret" TO \'PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG\';']
 
@@ -379,12 +393,12 @@ def main():
     print('#########')
 
     ##
-    parseList = ParseTagToList('[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_DB_PREFIX}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]')
+    parseList = ParseTagToList('[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_PROJECT_prefix}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]')
     print('N parseList', parseList)
     print('N MultiList', MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ))
     print('N toString', MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ).toString())
 
-    assert parseList == ['api-privileges', ['type', 'FUNCTION'], 'GRANT {{privilege}} ON {{type}} {{LB_DB_PREFIX}}_schema.{{api-name}} ({{parameters}}) TO {{role}};']
+    assert parseList == ['api-privileges', ['type', 'FUNCTION'], 'GRANT {{privilege}} ON {{type}} {{LB_PROJECT_prefix}}_schema.{{api-name}} ({{parameters}}) TO {{role}};']
     assert  MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ) == ['GRANT EXECUTE ON FUNCTION reg_schema.app (JSONB) TO anonymous;']
     assert  MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ).toString() == 'GRANT EXECUTE ON FUNCTION reg_schema.app (JSONB) TO anonymous;'
 
@@ -420,11 +434,19 @@ def main():
     print('Q toString', MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ).toString())
 
     assert parseList == ['api-test-forms', ['type', 'insert'], "is ( {{db-prefix}}_schema.{{api-name}}( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );"]
-
     assert  MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ) == ['is ( reg_schema.app( sign(\'{"username": "testuser@register.com", "role": "anonymous"}\', current_setting(\'app.jwt_secret\')), \'{"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}\'::JSONB )::JSONB, \'{"status": "200", "msg": "ok"}\'::JSONB, \'app - insert test\'::TEXT );']
-
     assert  MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ).toString() == 'is ( reg_schema.app( sign(\'{"username": "testuser@register.com", "role": "anonymous"}\', current_setting(\'app.jwt_secret\')), \'{"type": "app", "app-name": "my-test-app", "version": "1.0.0", "username": "testuser@register.com", "email": "test@register.com", "password": "g1G!gggg", "test": "insert"}\'::JSONB )::JSONB, \'{"status": "200", "msg": "ok"}\'::JSONB, \'app - insert test\'::TEXT );'
+    print('#########')
+    ##
+    parseList = ParseTagToList("[[LB_PROJECT_prefix]]")
+    print('R parseList', parseList)
+    print('R MultiList', MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ))
+    print('R toString', MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ).toString())
 
+    assert parseList == ['None', ['None', 'None'], '{{LB_PROJECT_prefix}}']
+    assert  MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ) == ['reg']
+    assert  MultiList(parseList, InterfaceConfiguration('app').load(test_table()) ).toString() == 'reg'
+    print('#########')
 
 if __name__ == "__main__":
     main()

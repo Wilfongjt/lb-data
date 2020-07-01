@@ -1,4 +1,53 @@
 # lb-data
+# Configure Output
+* Manually create an umbrella folder e.g. "~/LyttleBit/code/01-adopt-a-drain/"
+* Clone your repo in the umbrella folder e.g. "git clone <your repo url>"
+* Update your .env with LB_GIT={"name":"adopt-a-drain","branch":"#21.refactor.reorganize.folders", "owner":"Wilfongjt"}
+
+
+```
+    git clone https://github.com/Wilfongjt/adopt-a-drain.git
+    cd adopt-a-drain/
+    git checkout 
+```
+
+* set LB_ 
+
+# Environment Variables
+```
+LB_PROJECT={"name":"adopt-a-drain", "prefix":"aad", "owner":"Wilfongjt", "branch":"#21.refactor.reorganize.folders"}
+
+# LB_PROJECT={"name":"register", "prefix":"reg", "owner":"Wilfongjt"}
+# LB_GIT={"name":"register","branch":"#05.refactor.api", "owner":"Wilfongjt"}
+
+######### DATABASE
+LB_PROJECT_prefix=reg
+
+# Model Users
+LB_REGISTER_JWT_MODEL={"username":"jwt@register.com","email":"jwt@register.com","password":"PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG","role":"jwt"}
+LB_REGISTER_GUEST_MODEL={"username":"anonymous@register.com","email":"anonymous@register.com","password":"g1G!gggg","role":"anonymous"}
+LB_REGISTER_REGISTRANT_MODEL={"username":"registrant@register.com","email":"registrant@register.com","password":"g1G!gggg","role":"registrant"}
+LB_REGISTER_EDITOR_MODEL={"username":"editor@register.com","email":"editor@register.com","password":"g1G!gggg","role":"editor"}
+LB_REGISTER_REGISTRAR_MODEL={"username":"registrar@register.com","email":"registrar@register.com","password":"g1G!gggg","role":"registrar"}
+
+LB_TEST_USER={"type":"app", "app-name":"my-app","version": "1.0.0", "username":"testuser@register.com","email":"test@register.com","password":"g1G!gggg"}
+
+LB_WEB_GUEST={"name":"anonymous@web.com","password":"g1G!gggg","role":"anonymous"}
+
+
+
+######### PASSWORDS
+LB_REGISTER_JWT_MODEL_password=PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG
+
+LB_WEB_PASSWORD=w1W!wwww
+LB_WEB_GUEST_PASSWORD=g1G!gggg
+
+LB_ADMIN_PASSWORD=a1A!aaaa
+LB_ADMIN_GUEST_PASSWORD=g1G!gggg
+LB_ADMIN_REGISTRAR_PASSWORD=r1R!rrrr
+```
+
+# lb-data
 Setup Postgres rest development environment
 
 * registrant-token indentifies the user to the system
@@ -39,15 +88,15 @@ models are environment variables
                     "email":"registrar@register.com", 
                     "password":"g1G!gggg", 
                     "role":"registrar", 
-                    "app-id":"<>.1.0.0"}
+                    "app_id":"<>.1.0.0"}
 * testregistrar-model  = {"type":"app",
-                      "app-id":"my-app@1.0.0",
+                      "app_id":"my-app@1.0.0",
                       "username":"testuser@register.com",
                       "email":"testuser@register.com",
                       "password":"g1G!gggg",
                       "role":"registrar"}
 testuser-model  = {"type":"app",
-                      "app-id":"my-app@1.0.0",
+                      "app_id":"my-app@1.0.0",
                       "username":"testuser@register.com",
                       "email":"testuser@register.com",
                       "password":"g1G!gggg",
@@ -57,7 +106,7 @@ testuser-model  = {"type":"app",
 Tokens are JSON Web Tokens
 * anonymous-token-content = {"username":"anonymous@register.com",       "role":"anonymous"}
 * app-token-content       = {"registrar-name":"registrar@register.com", "role":"registrar"}
-* user-token-content      = {"username":"<>@<>.<>",                     "role":"user",     "app-id": "<>@<>.<>"}
+* user-token-content      = {"username":"<>@<>.<>",                     "role":"user",     "app_id": "<>@<>.<>"}
 
 # forms (JSONB)
 A form is client submitted set of attributes
@@ -67,7 +116,7 @@ A form is client submitted set of attributes
 # functions
 * add application, app(app-form TEXT) return {"username":"anonymous@register.com", "type":"app", "token":"aaaaaa"}
 * add application, app(anonymous-token TEXT, app-form JSONB)
-* get app-token,   app(anonymous-token TEXT, app-id TEXT) returns {"username":"anonymous@register.com", "type":"app", "token":"aaaaaa"}
+* get app-token,   app(anonymous-token TEXT, app_id TEXT) returns {"username":"anonymous@register.com", "type":"app", "token":"aaaaaa"}
 
 * add user,        user(app-token, user-form) 
 * get user,        user(app-token, user-credentials) returns {"username":"anonymous@register.com", "type":"user", "token":"uuuuu"}

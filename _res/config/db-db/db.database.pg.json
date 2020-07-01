@@ -3,13 +3,13 @@
     "db-type-abbr": "pg",
     "type": "database",
     "db-extensions": [{"name": "pgcrypto"}, {"name": "pgtap"}, {"name": "pgjwt"}, {"name": "\"uuid-ossp\""}],
-    "model-template": "[[models.*:*.ALTER DATABASE {{LB_DB_PREFIX}}_db SET \"{{app-key}}\" TO '{{model}}';]]",
+    "model-template": "[[models.*:*.ALTER DATABASE {{LB_PROJECT_prefix}}_db SET \"{{app-key}}\" TO '{{model}}';]]",
 
     "models": [
 
         {
             "type": "model",
-            "env-key": "LB_REGISTER_JWT",
+            "env-key": "LB_REGISTER_JWT_MODEL",
             "app-key": "app.lb_register_jwt",
             "description": ["JSON WEB Token"],
             "model": {
@@ -31,7 +31,7 @@
         },
         {
             "type": "model",
-            "env-key": "LB_REGISTER_EDITOR",
+            "env-key": "LB_REGISTER_EDITOR_MODEL",
             "app-key": "app.lb_register_editor",
             "description": ["define me"],
             "model": {"username":"editor@register.com",
@@ -41,7 +41,7 @@
         },
         {
             "type": "model",
-            "env-key": "LB_REGISTER_REGISTRANT",
+            "env-key": "LB_REGISTER_REGISTRANT_MODEL",
             "app-key": "app.lb_register_registrant",
             "description": ["define me"],
             "model": {"username":"registrant@register.com",
@@ -51,7 +51,7 @@
         },
         {
             "type": "model",
-            "env-key": "LB_REGISTER_REGISTRAR",
+            "env-key": "LB_REGISTER_REGISTRAR_MODEL",
             "app-key": "app.lb_register_registrar",
             "description": ["define me"],
             "model": {"username":"registrar@register.com",
@@ -61,7 +61,7 @@
         },
         {
             "type": "model",
-            "env-key": "LB_REGISTER_TESTUSER",
+            "env-key": "LB_TEST_USER",
             "app-key": "app.lb_register_testuser",
             "description": ["define me"],
             "model": {"type":"app",

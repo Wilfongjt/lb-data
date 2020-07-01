@@ -129,8 +129,8 @@ class Function_UpdateCombinationCode(Function):
         tblpfx = self.dictionary['tbl-prefix']
         set_names = [' {}_{} = _{}'.format(tblpfx, nm,nm) for nm in name_list]
 
-        #pfx = self.dictionary['LB_DB_PREFIX']
-        pfx = os.environ['LB_DB_PREFIX']
+        #pfx = self.dictionary['LB_PROJECT_prefix']
+        pfx = os.environ['LB_PROJECT_prefix']
 
         tblname = self.dictionary['tbl-name']
         #where_lines = HelperWhereClauseFormat().set_dictionary(self.dictionary).format()
