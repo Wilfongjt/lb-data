@@ -484,41 +484,41 @@ curl http://localhost:3100/rpc/app -X POST \
      -H "Authorization: Bearer $TOKEN"   \
      -H "Content-Type: application/json" \
      -H "Prefer: params=single-object"\
-     -d '{"type": "bad", "name": "my-app@1.0.0", "owner": "me@someplace.com", "password": "a1A!aaaa"}'
+     -d '{"type": "bad", "name": "my-app@1.0.0", "group":"register", "owner": "me@someplace.com", "password": "a1A!aaaa"}'
 
 # fail with bad application name value
 curl http://localhost:3100/rpc/app -X POST \
      -H "Authorization: Bearer $TOKEN"   \
      -H "Content-Type: application/json" \
      -H "Prefer: params=single-object"\
-     -d '{"type": "app", "name": "my!app@1.0.0", "owner": "me@someplace.com", "password": "a1A!aaaa"}'
+     -d '{"type": "app", "name": "my!app@1.0.0", "group":"register", "owner": "me@someplace.com", "password": "a1A!aaaa"}'
 
 # fail with bad password value
 curl http://localhost:3100/rpc/app -X POST \
      -H "Authorization: Bearer $TOKEN"   \
      -H "Content-Type: application/json" \
      -H "Prefer: params=single-object"\
-     -d '{"type": "app", "name": "my_app@1.0.0", "owner": "me@someplace.com", "password": "password"}'
+     -d '{"type": "app", "name": "my_app@1.0.0", "group":"register", "owner": "me@someplace.com", "password": "password"}'
 
 # fail with bad owner name value
 curl http://localhost:3100/rpc/app -X POST \
      -H "Authorization: Bearer $TOKEN"   \
      -H "Content-Type: application/json" \
      -H "Prefer: params=single-object"\
-     -d '{"type": "app", "name": "my_app@1.0.0", "owner": "mesomeplace.com", "password": "P1!password"}'
+     -d '{"type": "app", "name": "my_app@1.0.0", "group":"register", "owner": "mesomeplace.com", "password": "P1!password"}'
 
 # success with id
 curl http://localhost:3100/rpc/app -X POST \
      -H "Authorization: Bearer $TOKEN"   \
      -H "Content-Type: application/json" \
      -H "Prefer: params=single-object"\
-     -d '{"id": "xxx", "type": "app", "name": "my_app@1.0.0", "owner": "me@someplace.com", "password": "a1A!aaaa"}'
+     -d '{"id": "xxx", "type": "app", "name": "my_app@1.0.0", "group":"register", "owner": "me@someplace.com", "password": "a1A!aaaa"}'
 
 # success with good attributes, values and token
 curl http://localhost:3100/rpc/app -X POST \
      -H "Authorization: Bearer $TOKEN"   \
      -H "Content-Type: application/json" \
      -H "Prefer: params=single-object"\
-     -d '{"type": "app", "name": "my_app@1.0.0", "owner": "me@someplace.com", "password": "a1A!aaaa"}'
+     -d '{"type": "app", "name": "my_app@1.0.0", "group":"register", "owner": "me@someplace.com", "password": "a1A!aaaa"}'
 
 */
