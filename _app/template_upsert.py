@@ -26,11 +26,11 @@ class Template_Upsert(Template):
 
     def getTemplateList(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 -- gen from default tmpl
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
+[[LB_PROJECT_prefix]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
 AS $$
   Declare rc jsonb;
   Declare _cur_row JSONB;
@@ -43,7 +43,7 @@ AS $$
     _model_user := current_setting('app.lb_register_[[api-role]]')::jsonb;
 
     -- figure out which token: app-token or user-token
-    if [[LB_DB_PREFIX]]_schema.is_valid_token(_token, _model_user ->> 'role') then
+    if [[LB_PROJECT_prefix]]_schema.is_valid_token(_token, _model_user ->> 'role') then
 		rc := '{"status":"200", "msg":"ok"}'::JSONB;
     else
         return '{"status": "401", "msg": "Bad Request, token."}'::JSONB;
@@ -63,7 +63,7 @@ AS $$
 		-- get current json object
 		select [[tbl-prefix]]_[[tbl-fields.context:form.{{name}}]] as _usr
 		  into _cur_row
-		  from [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+		  from [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
 		  where [[tbl-prefix]]_[[api-form.context:pk.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:pk.{{name}}]]' as TEXT) and [[tbl-prefix]]_[[api-form.context:type.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:type.{{name}}]]' as TEXT);
 
 		  -- where [[tbl-prefix]]_[[api-form.context:uuid.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:uuid.{{name}}]]' as UUID) and [[tbl-prefix]]_[[api-form.context:type.{{name}}]]= cast(_json::jsonb ->> '[[api-form.context:type.{{name}}]]' as TEXT);
@@ -131,7 +131,7 @@ AS $$
                 return '{"status":"400", "msg": "Bad Request, not acceptable."}'::JSONB;
             end if;
 
-			INSERT INTO [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+			INSERT INTO [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
                 ([[tbl-fields.crud:(CF).{{tbl-prefix}}_{{name}}., ]])
               VALUES
                 ([[tbl-fields.crud:(CF)._{{name}}., ]] );
@@ -151,7 +151,7 @@ AS $$
   END;
 $$ LANGUAGE plpgsql;
 
-[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_DB_PREFIX}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]
+[[api-privileges..type:FUNCTION..GRANT {{privilege}} ON {{type}} {{LB_PROJECT_prefix}}_schema.{{api-name}} ({{parameters}}) TO {{role}};]]
 
  '''.split('\n')
 

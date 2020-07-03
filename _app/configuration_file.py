@@ -6,6 +6,8 @@ from util import Util
 #from __classes__.application import Application
 from file import FileAsDict
 from app_settings import AppSettings, AppSettingsTest
+
+
 #from crud import CRUD
 from text_file import TextFile
 
@@ -34,11 +36,11 @@ class ConfigurationDict(FileAsDict):
         return self
 
     def dep_fixEnv(self):
-        #self['LB_DB_PREFIX'] = self.appSettings.lbdb_prefix or 'NA'
-        self['LB_DB_PREFIX'] = self.appSettings.lbdb_prefix or 'NA'
+        #self['LB_PROJECT_prefix'] = self.appSettings.lbdb_prefix or 'NA'
+        self['LB_PROJECT_prefix'] = self.appSettings.lbdb_prefix or 'NA'
         self['db-api-table-type'] = self.appSettings.lbdb_type or 'NA'
         self['db-api-table-type-abbr'] = self.appSettings.lbdb_type_abbr or 'NA'
-        self['app-name'] = self.appSettings.lb_project['name']
+        self['app-name'] = self.appSettings.LB_PROJECT['name']
         # collect env vars
         '''
         for v in os.environ:

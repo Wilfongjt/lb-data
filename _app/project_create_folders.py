@@ -28,7 +28,7 @@ class ProjectCreateFolders(Step):
             self.getData()['project-folders']={}
         # expand the project folders
         for key in self.appSettings.getProjectFolders():
-            val = '{}/{}'.format(self.appSettings.getFolder('working-folder'),
+            val = '{}/{}'.format(self.appSettings.getFolder('working_folder'),
                            self.appSettings.getProjectFolders()[key])
             self.getData()['project-folders'][key]=val
 

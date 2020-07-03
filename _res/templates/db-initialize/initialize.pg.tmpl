@@ -1,6 +1,6 @@
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 -- insert a test user
--- [[api-test-forms..type:insert..select {{LB_DB_PREFIX}}_schema.{{api-name}}(sign(current_setting('app.lb_register_anonymous')::json, current_setting('app.jwt_secret'))::TEXT,\'{{form}}\'::JSONB);]]
+-- [[api-test-forms..type:insert..select {{LB_PROJECT_prefix}}_schema.{{api-name}}(sign(current_setting('app.lb_register_anonymous')::json, current_setting('app.jwt_secret'))::TEXT,\'{{form}}\'::JSONB);]]
     --
     --  sign(current_setting('app.lb_register_anonymous')::json, current_setting('app.jwt_secret'))
 

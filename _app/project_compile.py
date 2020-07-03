@@ -282,7 +282,7 @@ class ProjectCompile(Step):
         elif '[[insert-values]]' in line:
             """
                 INSERT
-                  INTO [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+                  INTO [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
                   (
                     [[insert-columns]]
                   ) VALUES (
@@ -299,7 +299,7 @@ class ProjectCompile(Step):
         elif '[[insert-columns]]' in line:
             """
                 INSERT
-                  INTO [LB_DB_PREFIX]]_schema.[[tbl-name]]
+                  INTO [LB_PROJECT_prefix]]_schema.[[tbl-name]]
                   (
                     [[insert-columns]]
                   ) VALUES (
@@ -341,7 +341,7 @@ class ProjectCompile(Step):
         elif '[[declare-upsert]]' in line:
             """
             CREATE OR REPLACE FUNCTION
-                [[LB_DB_PREFIX]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
+                [[LB_PROJECT_prefix]]_schema.[[api-name]](_token TEXT, _json JSONB) RETURNS JSONB
                 AS $$
                     Declare rc jsonb;
                     Declare _cur_row JSONB;
@@ -358,7 +358,7 @@ class ProjectCompile(Step):
             """
                 select [[tbl-prefix]]_row as _usr
                       into _cur_row
-                      from [[LB_DB_PREFIX]]_schema.[[api-table]]
+                      from [[LB_PROJECT_prefix]]_schema.[[api-table]]
                       where
                         [[where-clause]]
                 Function_WhereClause        
@@ -377,7 +377,7 @@ class ProjectCompile(Step):
         elif '[[insert-parameter-types]]' in line:
             """
                 GRANT EXECUTE ON FUNCTION
-                  [[LB_DB_PREFIX]]_schema.[[api-name]](
+                  [[LB_PROJECT_prefix]]_schema.[[api-name]](
                   [[insert-parameter-types]]
                   ) TO anonymous;
                   Function_InsertParameterTypes
@@ -404,7 +404,7 @@ class ProjectCompile(Step):
              select
                 '{' || [[select-columns]] || '}'
                 into rc from
-                [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+                [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
                 where [[tbl-prefix]]_id=id;
                 
                 Function_SelectColumns
@@ -557,7 +557,7 @@ class ProjectCompile(Step):
          select
             '{' || [[select-columns]] || '}'
             into rc from
-            [[LB_DB_PREFIX]_schema.[[tbl-name]]
+            [[LB_PROJECT_prefix]_schema.[[tbl-name]]
             where [[tbl-prefix]]_id=id;
         """
         return  ['\'{{\' || {} ||\'}}\''.format(' || '.join( ['format(\'"{}":"%s"\',{}_{})'.format(f['name'],self.getConfigFile()['tbl-prefix'],f['name'])

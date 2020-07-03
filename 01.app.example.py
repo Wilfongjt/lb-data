@@ -30,7 +30,7 @@ def main():
 
     # check env variable
     for v in os.environ:
-        if v.startswith('LB'):
+        if v.startswith('LB_'):
             print(v, os.getenv(v))
 
     app = App()
@@ -42,7 +42,7 @@ def main():
     # copy system files
 
     # Folders
-    # /<working-folder>
+    # /<working_folder>
     #     - /<code-folder>
     #     --- /<umbrella-folder>
     #     ----- /<branch-folder>

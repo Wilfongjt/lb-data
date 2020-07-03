@@ -22,7 +22,9 @@ class ProjectEnvironment(AppEnvironment):
     def process(self):
         super().process()
 
-        self.set('project-name', self.get('LB_PROJECT_NAME'))
+        self.set('project-name', self.get('LB_PROJECT.name'))
+        #        self.set('project-name', self.get('LB_PROJECT_name'))
+
         self.set('project-folder-name', '{}-{}'.format(self.get('project-name'), self.get('LB_ENV') ) )
         self.set('project-folder', self.appSettings.getFolder('project-folder'))
         #print('data', self.getData())
@@ -78,7 +80,7 @@ def main():
 
     print('  - set project data')
     #assert(step.getData()['LB_WORKING_FOLDER_NAME']=='temp')
-    assert(step.getData()['project-name']== os.environ['LB_PROJECT_NAME'] or 'example')
+    assert(step.getData()['project-name']== os.environ['LB_PROJECT_name'] or 'example')
     assert(step.get('project-folder').endswith(step.get('project-folder-name')))
     assert ('project-name' in step.getData())
     assert ('project-folder-name' in step.getData())

@@ -1,16 +1,16 @@
 ---- SET DB
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 -- TABLE
 create table if not exists
-[[LB_DB_PREFIX]]_schema.[[tbl-name]] (
+[[LB_PROJECT_prefix]]_schema.[[tbl-name]] (
   <<table-fields>>
 );
 
 -- INDEXxxx
-CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
+CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
 
---CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id text_pattern_ops);
---CREATE UNIQUE INDEX [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
+--CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id text_pattern_ops);
+--CREATE UNIQUE INDEX [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id);
 -- TRIGGER FUNCTION
 CREATE OR REPLACE FUNCTION [[tbl-prefix]]_ins_upd_trigger_func() RETURNS trigger
 AS $$
@@ -45,7 +45,7 @@ END; $$ LANGUAGE plpgsql;
 
 -- TRIGGER
 CREATE TRIGGER [[tbl-prefix]]_ins_upd_trigger
- BEFORE INSERT ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+ BEFORE INSERT ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
  FOR EACH ROW
  EXECUTE PROCEDURE [[tbl-prefix]]_ins_upd_trigger_func();
 

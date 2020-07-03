@@ -33,14 +33,14 @@ class TemplateSelect(Template):
 
     def getTemplate(self):
         return '''
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 -------------------------------
 -- Select
 ---------
 
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.[[api-name]](_token text, id uuid) RETURNS TEXT
+[[LB_PROJECT_prefix]]_schema.[[api-name]](_token text, id uuid) RETURNS TEXT
 AS $$
   DECLARE rc TEXT;
   DECLARE secret TEXT;
@@ -51,11 +51,11 @@ BEGIN
 
   rc := '{"result":-1}';
 
-  if [[LB_DB_PREFIX]]_schema.is_valid_token(_token) then
+  if [[LB_PROJECT_prefix]]_schema.is_valid_token(_token) then
 
     select [[tbl-prefix]]_[[tbl-fields.context:form.{{name}}]]
     into rc_form
-    from [[LB_DB_PREFIX]]_schema.[[tbl-name]]
+    from [[LB_PROJECT_prefix]]_schema.[[tbl-name]]
 	where [[tbl-prefix]]_[[api-form.context:uuid.{{name}}]]= id;
     
     if rc is NULL then
@@ -69,7 +69,7 @@ BEGIN
 END;  $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION
-  [[LB_DB_PREFIX]]_schema.[[api-name]](
+  [[LB_PROJECT_prefix]]_schema.[[api-name]](
   TEXT, UUID
   ) TO anonymous;
 

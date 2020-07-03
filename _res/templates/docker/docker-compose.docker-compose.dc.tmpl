@@ -2,66 +2,78 @@ version: '3'
 # docker-compose up
 # ref: http://postgrest.org/en/v6.0/install.html#docker
 # ref: https://github.com/mattddowney/compose-postgrest/blob/master/docker-compose.yml
+# Issue:  'password authentication failed for user "postgres"'
+# Resolution:  then delete the database instance and rerun docker-compose up
+# Trouble: Environment variables
+# Solution: add .env in same folder as this yml.  include same name variables as those in environment section
 
 services:
-  admin:
-    container_name: [[admin-name]]
-    image: [[app-owner]]/[[admin-name]]
-    build:
-      context: ./[[admin-name]]
-      dockerfile: dockerfile-[[admin-name]]
-    command: >
-      bash -c "npm install && npm run dev"
-    volumes:
-      - ./[[admin-name]]:/usr/src
-    ports:
-      - "3200:3000"
-  web:
-    container_name: [[web-name]]
-    image: [[app-owner]]/[[web-name]]
-    build:
-      context: ./[[web-name]]
-      dockerfile: dockerfile-[[web-name]]
-    command: >
-      bash -c "npm install && npm run dev"
-    volumes:
-      - ./[[web-name]]:/usr/src
-    ports:
-      - "3000:3000"
+  #admin:
+  #  container_name: [[admin-name]]
+  #  image: [[app-owner]]/[[admin-name]]
+  #  build:
+  #    context: ./[[admin-name]]
+  #    dockerfile: dockerfile-[[admin-name]]
+  #  command: >
+  #    bash -c "npm install && npm run dev"
+  #  volumes:
+  #    - ./[[admin-name]]:/usr/src
+  #  ports:
+  #    - "3200:3000"
+  #web:
+  #  container_name: [[web-name]]
+  #  image: [[app-owner]]/[[web-name]]
+  #  build:
+  #    context: ./[[web-name]]
+  #    dockerfile: dockerfile-[[web-name]]
+  #  command: >
+  #    bash -c "npm install && npm run dev"
+  #  volumes:
+  #    - ./[[web-name]]:/usr/src
+  #  ports:
+  #    - "3000:3000"
 
   #############
   # POSTGRES
   #########
 
   db:
-    env_file:
-         - pg.env
+    # env_file:
+    #     - pg.env
+    # create a .env to hold env vars ... see below
     build:
-
         context: ./db
         dockerfile: dockerfile-db
     ports:
       - "5433:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${LB_POSTGRES_PASSWORD}
-      - POSTGRES_DB=[[LB_DB_PREFIX]]_db
-      - DB_ANON_ROLE=anonymous
-      - DB_SCHEMA=[[LB_DB_PREFIX]]_schema
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=postgres
+      - DB_ANON_ROLE=${DB_ANON_ROLE}
+      - DB_SCHEMA=${DB_SCHEMA}
       - DB_NAME=postgres
-      - DB_USER=postgres
-      - DB_PASS="${LB_DB_PASS}"
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      #- POSTGRES_USER=${LB_POSTGRES_MODEL_username}
+      #- POSTGRES_PASSWORD=${LB_POSTGRES_MODEL_password}
+      #- POSTGRES_DB=postgres
+      #- DB_ANON_ROLE=${LB_DB_MODEL_role}
+      #- DB_SCHEMA=[[LB_PROJECT_prefix]]_schema
+      #- DB_NAME=postgres
+      #- DB_USER=${LB_DB_MODEL_username}
+      #- DB_PASS=${LB_DB_MODEL_password}
 
     volumes:
       # anything in initdb directory is created in the database
       # see "How to extend this image" section at https://hub.docker.com/r/_/postgres/
-      #      - "./[[LB_DB_PREFIX]]-db/pg-database/db-scripts/compiled-scripts:/docker-entrypoint-initdb.d"
+      #      - "./[[LB_PROJECT_prefix]]-db/pg-database/db-scripts/compiled-scripts:/docker-entrypoint-initdb.d"
 
       - "./db/sql:/docker-entrypoint-initdb.d"
 
       # Uncomment this if you want to persist the data.
 
-      - "~/.data/[[LB_DB_PREFIX]]_db/pgdata:/var/lib/postgresql/data"
+      #- "~/.data/[[LB_PROJECT_prefix]]_db/pgdata:/var/lib/postgresql/data"
 
     networks:
       - postgrest-backend
@@ -82,11 +94,15 @@ services:
     environment:
       # The standard connection URI format, documented at
       # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
-
-      PGRST_DB_URI: postgres://postgres:[[LB_POSTGRES_PASSWORD]]@db:5432/[[LB_DB_PREFIX]]_db
-      PGRST_DB_SCHEMA: [[LB_DB_PREFIX]]_schema
-      PGRST_DB_ANON_ROLE: anonymous
-
+      - PGRST_DB_URI=postgres://postgres:${DB_PASS}@db:5432/[[LB_PROJECT_prefix]]_db
+      - PGRST_DB_SCHEMA=${DB_SCHEMA}
+      - PGRST_DB_ANON_ROLE=${DB_ANON_ROLE}
+      #PGRST_DB_URI: postgres://postgres:${DB_PASS}@db:5432/[[LB_PROJECT_prefix]]_db
+      #PGRST_DB_SCHEMA: ${DB_SCHEMA}
+      #PGRST_DB_ANON_ROLE: ${DB_ANON_ROLE}
+      #PGRST_DB_URI: postgres://postgres:${LB_POSTGRES_MODEL_password}@db:5432/[[LB_PROJECT_prefix]]_db
+      #PGRST_DB_SCHEMA: [[LB_PROJECT_prefix]]_schema
+      #PGRST_DB_ANON_ROLE: ${LB_DB_MODEL_role}
     depends_on:
       - db
 

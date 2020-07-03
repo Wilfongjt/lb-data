@@ -1,9 +1,9 @@
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 
 ----------------------------------------------
 
 CREATE OR REPLACE FUNCTION
-[[LB_DB_PREFIX]]_schema.get_username(_token text) RETURNS TEXT
+[[LB_PROJECT_prefix]]_schema.get_username(_token text) RETURNS TEXT
 AS $$
 
   DECLARE data TEXT;

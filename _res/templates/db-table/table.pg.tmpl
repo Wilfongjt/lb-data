@@ -1,14 +1,14 @@
 -- Default Table Template
 ---- SET DB
 
-\c [[LB_DB_PREFIX]]_db
+\c [[LB_PROJECT_prefix]]_db
 create table if not exists
-[[LB_DB_PREFIX]]_schema.[[tbl-name]] (
+[[LB_PROJECT_prefix]]_schema.[[tbl-name]] (
   <<table-fields>>
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_id int4_ops);
---CREATE UNIQUE INDEX IF NOT EXISTS index_[[tbl-name]]_on_[[tbl-prefix]]_email ON [[LB_DB_PREFIX]]_schema.[[tbl-name]]([[tbl-prefix]]_email text_ops);
+CREATE UNIQUE INDEX IF NOT EXISTS [[tbl-name]]_[[tbl-prefix]]_id_pkey ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_id int4_ops);
+--CREATE UNIQUE INDEX IF NOT EXISTS index_[[tbl-name]]_on_[[tbl-prefix]]_email ON [[LB_PROJECT_prefix]]_schema.[[tbl-name]]([[tbl-prefix]]_email text_ops);
 
 
 

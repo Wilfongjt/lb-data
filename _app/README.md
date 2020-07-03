@@ -1,6 +1,6 @@
 
 Environment Variables
-* LB_WORKING_NAME
+* LB_ENV_working_folder
 
 AppEnvironment()
     * container holds application steps

@@ -1,0 +1,27 @@
+#!/bin/bash
+# source ./__scripts/00.settings.sh
+source ./_conf.sh
+
+# check for database folder and make if not there
+echo "MY GIT PROJECT is ${LB_PROJECT_name}"
+
+cd ${LB_PROJECT_name}
+
+if [ ! -d ${LB_PROJECT_name} ] ; then
+   if [ ! -d db/ ] ; then
+     # create folder
+     mkdir db
+   fi
+fi
+
+if [ -d db/ ] ; then
+     # copy files for postgres
+     cd db/
+     #cp -r ../../../../../00-Setup/__datastore/* .
+     cp -r ~/${LB_ENV_working_folder}/code/00-Setup/__datastore/* .
+     # make sql script folder
+     mkdir 'sql'
+     cd ..
+   fi
+cd ..
+ls

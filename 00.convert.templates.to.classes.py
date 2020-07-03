@@ -10,6 +10,8 @@ print('change projects in .env')
 import os
 from util import Util
 from app_settings import AppSettings, AppSettingsTest
+#from app_settings import AppSettings
+
 from text_file import TextFile
 from pprint import pprint
 from configuration_file import ConfigurationDict
@@ -29,25 +31,24 @@ class MakeList(dict):
             'table': {'prefix': '05', 'ext': 'sql', 'folder-key': 'sql-folder'},
             'function': {'prefix': '07', 'ext': 'sql', 'folder-key': 'sql-folder'},
 
-            #'table-api-upsert': {'prefix': '09', 'ext': 'sql', 'folder-key': 'sql-folder'},
             'interface-upsert': {'prefix': '09', 'ext': 'sql', 'folder-key': 'sql-folder'},
             'interface-select': {'prefix': '09', 'ext': 'sql', 'folder-key': 'sql-folder'},
             'interface-test': {'prefix': '99', 'ext': 'sql', 'folder-key': 'sql-folder'},
 
-            #'table-api-insert': {'prefix': '09', 'ext': 'sql', 'folder-key': 'sql-folder'},
-            #'table-api-update': {'prefix': '09', 'ext': 'sql', 'folder-key': 'sql-folder'},
-            #'table-api-select': {'prefix': '09', 'ext': 'sql', 'folder-key': 'sql-folder'},
             'initialize': {'prefix': '11', 'ext': 'sql', 'folder-key': 'sql-folder'},
+            'grant': {'prefix': '13', 'ext': 'sql', 'folder-key': 'sql-folder'},
             'test': {'prefix': '99', 'ext': 'sql', 'folder-key': 'sql-folder'},
 
-            'script-sh': {'prefix': '13', 'ext': 'sh', 'folder-key': 'script-folder'},
+            'script-sh': {'prefix': '15', 'ext': 'sh', 'folder-key': 'script-folder'},
+            'config-sh': {'prefix': '15', 'ext': 'config.sh', 'folder-key': 'umbrella-folder'},
+            'setup-sh': {'prefix': '15', 'ext': 'sh', 'folder-key': 'umbrella-folder'},
 
-            'dockerfile-admin': {'prefix': '15', 'ext': '', 'folder-key': 'admin-folder'},
-            'dockerfile-db': {'prefix': '15', 'ext': '', 'folder-key': 'db-folder'},
-            'dockerfile-web': {'prefix': '15', 'ext': '', 'folder-key': 'web-folder'},
-            'docker-compose': {'prefix': '17', 'ext': 'yml', 'folder-key': 'code-folder'},
+            'dockerfile-admin': {'prefix': '17', 'ext': '', 'folder-key': 'admin-folder'},
+            'dockerfile-db': {'prefix': '17', 'ext': '', 'folder-key': 'db-folder'},
+            'dockerfile-web': {'prefix': '17', 'ext': '', 'folder-key': 'web-folder'},
+            'docker-compose': {'prefix': '19', 'ext': 'yml', 'folder-key': 'code-folder'},
 
-            'environment': {'prefix': '19', 'ext': 'env', 'folder-key': 'web-folder'},
+            'environment': {'prefix': '21', 'ext': 'env', 'folder-key': 'web-folder'},
         }
         self.process()
 
@@ -56,7 +57,7 @@ class MakeList(dict):
         folder_list = Util().getFolderList(self.appSettings.getResourceFolder('config'))
         #pprint(folder_list)
         for folder in folder_list:  # get all the sub folders in the resource folder
-            print('folder', folder)
+            print('A folder', folder)
             for filename in Util().getFileList(folder, ext='json'):  # open all the template files
                 #print('folder', folder)
 
@@ -88,14 +89,18 @@ class MakeList(dict):
     def toOutput(self, file_name):
         rc = ''
         parts = file_name.split('.')
-        #print('parts', parts)
+        # print('A parts', parts)
         ext = self.getExt(file_name)
         if ext == 'sql':
             rc = '{}.{}.{}.{}.{}'.format(self.getNameOrder(file_name), parts[0],parts[1], parts[2],self.getExt(file_name))
         elif ext == 'sh':
             rc = '{}.{}'.format(parts[0], ext)
+        elif ext == 'config.sh':
+            rc = '{}.{}'.format(parts[0], ext)
+        elif ext == 'setup.sh':
+            rc = '{}.{}'.format(parts[0], ext)
         elif ext == 'env':
-            rc = '{}'.format(ext)
+            rc = '.{}'.format(ext)
         elif ext == 'yml':
             rc = '{}.{}'.format(parts[0], ext)
         else:  # ext == '':
@@ -179,7 +184,7 @@ class MakeAPIConfigurations():
 def showFolders():
     print('---- FOLDERS ----')
     appSettings = AppSettingsTest()
-    print('* working-folder', appSettings.getFolder('working-folder'))
+    print('* working_folder', appSettings.getFolder('LB_ENV_working_folder-name'))
     print('* getProjectFolders')
     pprint(appSettings.getProjectFolders())
 
@@ -190,13 +195,24 @@ def main():
     from pprint import pprint
     import os
 
-    os.environ['LB-TESTING'] = '1'
+    os.environ['LB-TESTING'] = '0'
     #pprint(MakeList())
+    #if os.environ['LB-TESTING'] == '1':
+    #appSettings = AppSettingsTest()
+    #else:
+    #    appSettings = AppSettings()
 
-    appSettings = AppSettingsTest()
-
+    appSettings = AppSettings()
+    #print('* appSettings')
+    #pprint(appSettings)
     # out_file = TextFile(appSettings.getAppFolder(), '00.templates_gen.py')
-    print('cwd', os.getcwd())
+    #######################
+    ## WRITE TEMPLATE CLASSES
+    #####################
+    #print('cwd', os.getcwd())
+
+    out_file_list = []
+
     out_file = TextFile(os.getcwd(), '00.templates_gen.py')
 
     out_file.append('import sys')
@@ -214,8 +230,9 @@ def main():
 
     makeList = MakeList()
 
-    print('---- MakeList ---- ')
-    pprint(makeList)
+    #print('---- MakeList ---- ')
+    #pprint(makeList)
+    #exit(0)
 
     #pprint([makeList[f]['out-filename'] for f in makeList])
 
@@ -241,7 +258,7 @@ def main():
         out_file.append('        super().process()')
         out_file.append('        print(\'{}\'.format(\'\\n\'.join(self)))')
         out_file.append('        self.copy(self.getOutputFolder(), self.getOutputName())')
-
+        out_file.append('        self.permissions(self.getOutputFolder(), self.getOutputName())')
         out_file.append('        return self')
         out_file.append(' ')
         #out_file.append('    def getInputTemplate(self): return \'{}\''.format(makeList[_key]['conf-filename']))
@@ -252,6 +269,8 @@ def main():
         out_file.append('    def getOutputFolder(self): return \'{}\''.format(makeList[_key]['out-folder']))
         out_file.append('    def getOutputName(self): return \'{}\''.format(makeList[_key]['out-filename']))
         #out_file.append('    def getOutputFileName(self): return \'{}/{}\''.format(makeList[_key]['out-folder'], makeList[_key]['out-filename']))
+        print('  * ', makeList[_key]['out-filename'], '\t\t', makeList[_key]['out-folder'])
+        #out_file_list.append('{} {}'.format(makeList[_key]['out-folder'], makeList[_key]['out-filename']))
 
         out_file.append('    def getTemplateList(self):')
         out_file.append('        return \'\'\'')
@@ -286,8 +305,11 @@ def main():
     out_file.write()
     print('output to ' , out_file.getFolderName(), out_file.getFileName())
     #showFolders()
-
+    print('output files')
+    pprint(makeList[_key]['out-filename'])
     os.environ['LB-TESTING'] = '0'
+
+    #pprint(appSettings)
 
 if __name__ == "__main__":
     main()

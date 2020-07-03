@@ -25,9 +25,9 @@ def main():
     # check environment
     step.log('getData {}'.format(step.getData()))
     assert ('LB_WORKING_FOLDER_NAME' in step.getData())
-    assert ('LB_SECRET_PASSWORD' in step.getData())
-    assert ('LB_POSTGRES_PASSWORD' in step.getData())
-    assert ('LB_JWT_PASSWORD' in step.getData())
+    assert ('LB_DB_MODEL_password' in step.getData())
+    assert ('LB_POSTGRES_MODEL_password' in step.getData())
+    #assert ('LB_PASSWORDS-jwt' in step.getData())
 
     #appSettings.removeFolders()
     os.environ['LB-TESTING'] = '0'

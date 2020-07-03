@@ -3,9 +3,9 @@
 source ./_conf.sh
 
 # check for database folder and make if not there
-echo "LB_GIT_PROJECT is ${LB_GIT_PROJECT} "
-echo "LB_APP_NAME is ${LB_APP_NAME}"
-cd ${LB_GIT_PROJECT}
+echo "LB_GIT_PROJECT is ${LB_PROJECT_name} "
+echo "LB_PROJECT_name is ${LB_PROJECT_name}"
+cd ${LB_PROJECT_name}
 ls
 if [ ! -d "web/node_modules" ] ; then
     echo 'new nuxtjs'
