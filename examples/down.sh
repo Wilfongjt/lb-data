@@ -7,6 +7,6 @@ source ./_conf.sh
 echo "${LB_ENV_data_folder}/${LB_PROJECT_prefix}_db"
 cd ${LB_PROJECT_name}/
 
-docker-compose down
+docker-compose down --volumes
 
 

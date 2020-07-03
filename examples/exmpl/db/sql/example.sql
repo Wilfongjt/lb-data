@@ -29,6 +29,8 @@ block direct select from table
 
 select from table via function
 update into table via function
+* issue: ERROR:  database "exmpl_db" already exists
+    resolution: DROP DATABASE IF EXISTS exmpl_db;
 
 * issue: "Server lacks JWT secret"
     resolution: (add PGRST_JWT_SECRET to Postrest part of docker-compose)
@@ -50,6 +52,9 @@ update into table via function
     description: status:500 when insert on table with trigger
     evaluation: user must have TRIGGER  permissions on table
     evaluation: user must have EXECUTE permissions on trigger functions
+* issue:     unrecognized configuration parameter \"request.jwt.claim.type
+    evaluation: the TOKEN env variable isnt set
+    resolution: export TOKEN='paste a valid a token here'
 */
 --------------
 -- DATABASE
@@ -405,7 +410,21 @@ AS $$
     return rc;
   END;
 $$ LANGUAGE plpgsql;
-
+------------
+-- FUNCTION: ROUND_TRIP
+-----------------
+-- test if role is expected role
+-- for internal use only
+-- Permissions: EXECUTE
+-- Returns: JSONB
+/*
+CREATE OR REPLACE FUNCTION
+exmpl_schema.round_trip() RETURNS JSONB
+AS $$
+BEGIN
+  RETURN '{"status": "200", "msg":"round trip"}';
+END;  $$ LANGUAGE plpgsql;
+*/
 ----------------
 -- GRANT: API_GUEST
 ----------------
@@ -422,6 +441,8 @@ grant TRIGGER on exmpl_schema.register to api_guest;
 grant EXECUTE on FUNCTION exmpl_schema.exmpl_upsert_trigger_func to api_guest;
 grant EXECUTE on FUNCTION exmpl_schema.app(JSON) to api_guest;
 grant EXECUTE on FUNCTION exmpl_schema.app_validate(JSONB) to api_guest;
+
+-- grant EXECUTE on FUNCTION exmpl_schema.round_trip() to api_guest;
 
 -- It’s a good practice to create a dedicated role for connecting to the database, instead of using the highly privileged postgres role.
 -- So we’ll do that, name the role authenticator and also grant him the ability to switch to the api_guest role :
@@ -460,6 +481,15 @@ Users
 '{"type": "user", "apps": ["my_app@1.0.0"], "name": "me@someplace.com", "password": "a1A!aaaa"}'
 
 Curl Samples
+
+# sucess with round trip to server
+curl http://localhost:3100/rpc/round_trip -X POST \
+     -H "Authorization: Bearer $TOKEN"   \
+     -H "Content-Type: application/json" \
+     -H "Prefer: params=single-object"
+
+
+
 # get a token
 curl http://localhost:3100/rpc/token -X GET \
      -H "Content-Type: application/json"
