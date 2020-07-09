@@ -48,7 +48,7 @@ services:
     ports:
       - "5433:5432"
     environment: # ${} are defined in .env found in docker-config.yml folder
-      - POSTGRES_DB=$exmpl_db
+      - POSTGRES_DB=exmpl_db
       - POSTGRES_SCHEMA=exmpl_schema
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=mysecretdatabasepassword

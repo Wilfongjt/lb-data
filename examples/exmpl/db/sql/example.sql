@@ -1,4 +1,4 @@
-\c postgres
+\c postgres;
 
 -- create db object
 -- create role
@@ -79,6 +79,7 @@ extra code
 --------------
 \set postgres_jwt_secret `echo "'$POSTGRES_JWT_SECRET'"`;
 \set lb_guest_passord `echo "'$LB_GUEST_PASSWORD'"`;
+\set lb_guest_passord `echo "'$LB_GUEST_PASSWORD'"`;
 
 --------------
 -- DATABASE
@@ -92,9 +93,9 @@ CREATE DATABASE exmpl_db;
 ---------------
 -- REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 
-\c exmpl_db
+\c exmpl_db;
 
-create schema if not exists exmpl_schema;
+CREATE schema if not exists exmpl_schema;
 CREATE EXTENSION IF NOT EXISTS pgcrypto;;
 CREATE EXTENSION IF NOT EXISTS pgtap;;
 CREATE EXTENSION IF NOT EXISTS pgjwt;;
@@ -146,14 +147,14 @@ ALTER DATABASE exmpl_db SET "app.lb_api_guest" To '{"role":"api_guest"}';
 -- A role having the LOGIN attribute can be thought of as a user.
 -- Roles without this attribute are useful for managing database privileges, but are not users in the usual sense of the word.
 -- If not specified, NOLOGIN is the default, except when CREATE ROLE is invoked through its alternative spelling CREATE USER.
---
---create role authenticator noinherit login password 'mysecretclientpassword';
-CREATE role authenticator noinherit login password :lb_guest_passord ;
 
-CREATE role api_guest nologin; -- permissions to execute app() and insert type=app into register
+
+CREATE ROLE authenticator noinherit login password :lb_guest_passord ;
+
+CREATE ROLE api_guest nologin; -- permissions to execute app() and insert type=app into register
 -- each app gets its own _guest role  i.e., example_guest which is <group>_guest {"type":"user", "":""}
 -- each app gets its own _user role   i.e., example_user which is <group>_user
-CREATE role example_user nologin; -- permissions to execute exmpl_schema.user() and insert type=user into register
+CREATE ROLE example_user nologin; -- permissions to execute exmpl_schema.user() and insert type=user into register
 
 ----------------
 -- TYPE: JWT_TOKEN
@@ -214,7 +215,7 @@ BEGIN
                                         _app_data ->> 'app-name',
                                         _app_data ->> 'version',
                                         _app_data ->> 'app-name')::TEXT;
-        
+
         _custom := _app_tmpl::JSON;
         _token := sign( _custom, current_setting('app.jwt_secret')::TEXT,  'HS256'::TEXT);
         _form := format('{"token": "%s"}',_token)::JSONB;
