@@ -21,7 +21,7 @@ class Template_DockerfileWebDockerfileWebDkJson(Template):
         return self
  
     def getInputTemplate(self): return 'dockerfile-web.dockerfile-web.dk.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/web'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/web'
     def getOutputName(self): return 'dockerfile-web'
     def getTemplateList(self):
         return '''
@@ -66,7 +66,7 @@ class Template_DockerComposeDockerComposeDcJson(Template):
         return self
  
     def getInputTemplate(self): return 'docker-compose.docker-compose.dc.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain'
     def getOutputName(self): return 'docker-compose.yml'
     def getTemplateList(self):
         return '''
@@ -218,7 +218,7 @@ class Template_DockerfileDbDockerfileDbDkJson(Template):
         return self
  
     def getInputTemplate(self): return 'dockerfile-db.dockerfile-db.dk.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db'
     def getOutputName(self): return 'dockerfile-db'
     def getTemplateList(self):
         return '''
@@ -262,7 +262,7 @@ class Template_PgEnvironmentEnvJson(Template):
         return self
  
     def getInputTemplate(self): return 'pg.environment.env.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/web'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/web'
     def getOutputName(self): return '.env'
     def getTemplateList(self):
         return '''
@@ -293,7 +293,7 @@ class Template_DockerfileAdminDockerfileAdminDkJson(Template):
         return self
  
     def getInputTemplate(self): return 'dockerfile-admin.dockerfile-admin.dk.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/admin'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/admin'
     def getOutputName(self): return 'dockerfile-admin'
     def getTemplateList(self):
         return '''
@@ -338,7 +338,7 @@ class Template_TestJwtTokenTestPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'test-jwt-token.test.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '99.test-jwt-token.test.pg.sql'
     def getTemplateList(self):
         return '''
@@ -460,7 +460,7 @@ class Template_RegisterTablePgJson(Template):
         return self
  
     def getInputTemplate(self): return 'register.table.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '05.register.table.pg.sql'
     def getTemplateList(self):
         return '''
@@ -834,7 +834,7 @@ class Template_NuxtjsWebScriptShShJson(Template):
         return self
  
     def getInputTemplate(self): return 'nuxtjs-web.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return 'nuxtjs-web.sh'
     def getTemplateList(self):
         return '''
@@ -903,7 +903,7 @@ class Template_DownScriptShShJson(Template):
         return self
  
     def getInputTemplate(self): return 'down.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return 'down.sh'
     def getTemplateList(self):
         return '''
@@ -942,7 +942,7 @@ class Template_NuxtjsAdminScriptShShJson(Template):
         return self
  
     def getInputTemplate(self): return 'nuxtjs-admin.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return 'nuxtjs-admin.sh'
     def getTemplateList(self):
         return '''
@@ -1011,7 +1011,7 @@ class Template_UpScriptShShJson(Template):
         return self
  
     def getInputTemplate(self): return 'up.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return 'up.sh'
     def getTemplateList(self):
         return '''
@@ -1084,7 +1084,7 @@ class Template__confScriptShShJson(Template):
         return self
  
     def getInputTemplate(self): return '_conf.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return '_conf.sh'
     def getTemplateList(self):
         return '''
@@ -1156,7 +1156,7 @@ class Template_DbScriptShShJson(Template):
         return self
  
     def getInputTemplate(self): return 'db.script-sh.sh.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders'
     def getOutputName(self): return 'db.sh'
     def getTemplateList(self):
         return '''
@@ -1212,7 +1212,7 @@ class Template_AuthenticatorRolePgJson(Template):
         return self
  
     def getInputTemplate(self): return 'authenticator.role.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '03.authenticator.role.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1248,7 +1248,7 @@ class Template_AnonymousRolePgJson(Template):
         return self
  
     def getInputTemplate(self): return 'role.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '03.anonymous.role.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1289,7 +1289,7 @@ class Template_EditorRolePgJson(Template):
         return self
  
     def getInputTemplate(self): return 'role.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '03.editor.role.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1325,7 +1325,7 @@ class Template_Api_userRolePgJson(Template):
         return self
  
     def getInputTemplate(self): return 'role.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '03.api_user.role.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1361,7 +1361,7 @@ class Template_Get_idFunctionPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'get_id.function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '07.get_id.function.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1409,7 +1409,7 @@ class Template_Is_valid_tokenFunctionPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'is_valid_token.function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '07.is_valid_token.function.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1497,7 +1497,7 @@ class Template_Get_app_idFunctionPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'get_app_id.function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '07.get_app_id.function.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1549,7 +1549,7 @@ class Template_Validate_passwordValidateFunctionPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'validate_password.validate-function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '04.validate_password.validate-function.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1601,7 +1601,7 @@ class Template_Get_roleFunctionPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'get_role.function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '07.get_role.function.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1654,7 +1654,7 @@ class Template_Get_usernameFunctionPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'get_username.function.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '07.get_username.function.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1703,7 +1703,7 @@ class Template_RegisterUserInitializePgJson(Template):
         return self
  
     def getInputTemplate(self): return 'initialize.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '11.register-user.initialize.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1739,7 +1739,7 @@ class Template_RegisterAppInitializePgJson(Template):
         return self
  
     def getInputTemplate(self): return 'register-app.initialize.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '11.register-app.initialize.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1773,7 +1773,7 @@ class Template_RegisterUserInterfaceSelectPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'interface-select.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '09.register-user.interface-select.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1859,7 +1859,7 @@ class Template_RegisterUserInterfaceUpsertPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'interface-upsert.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '09.register-user.interface-upsert.pg.sql'
     def getTemplateList(self):
         return '''
@@ -1997,7 +1997,7 @@ class Template_RegisterAppInterfaceTestPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'interface-test.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '99.register-app.interface-test.pg.sql'
     def getTemplateList(self):
         return '''
@@ -2038,7 +2038,7 @@ class Template_RegisterAppInterfaceUpsertPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'register-app.interface-upsert.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '09.register-app.interface-upsert.pg.sql'
     def getTemplateList(self):
         return '''
@@ -2156,7 +2156,7 @@ class Template_RegisterAppInterfaceSelectPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'interface-select.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '09.register-app.interface-select.pg.sql'
     def getTemplateList(self):
         return '''
@@ -2242,7 +2242,7 @@ class Template_RegisterUserInterfaceTestPgJson(Template):
         return self
  
     def getInputTemplate(self): return 'interface-test.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '99.register-user.interface-test.pg.sql'
     def getTemplateList(self):
         return '''
@@ -2283,7 +2283,7 @@ class Template_DbDatabasePgJson(Template):
         return self
  
     def getInputTemplate(self): return 'database.pg.tmpl'
-    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-zadopt-a-drain/#21.refactor.reorganize.folders/zadopt-a-drain/db/sql'
+    def getOutputFolder(self): return '/Users/jameswilfong/..LyttleBit/dev/code/00-my-adopt-a-drain/#21.refactor.reorganize.folders/my-adopt-a-drain/db/sql'
     def getOutputName(self): return '01.db.database.pg.sql'
     def getTemplateList(self):
         return '''
@@ -2307,9 +2307,9 @@ SET search_path TO [[LB_PROJECT_prefix]]_schema, public; -- put everything in [[
 -- models
 [[models.*:*.ALTER DATABASE {{LB_PROJECT_prefix}}_db SET "{{app-key}}" TO \'{{model}}\';]]
 
-ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.jwt_secret" TO '[[LB_REGISTER_JWT_MODEL_password]]';
+ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.jwt_secret" TO '[[LB_JWT_MODEL_password]]';
 /*
-x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_jwt" TO '[[LB_REGISTER_JWT_MODEL]]';
+x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_jwt" TO '[[LB_JWT_MODEL]]';
 x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_anonymous" TO '[[LB_REGISTER_GUEST_MODEL]]';
 x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_editor" TO '[[LB_REGISTER_EDITOR_MODEL]]';
 x ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_register_registrant" TO '[[LB_REGISTER_REGISTRANT_MODEL]]';
@@ -2351,7 +2351,7 @@ $BODY$
 			
 			        {
 			            "type": "model",
-			            "env-key": "LB_REGISTER_JWT_MODEL",
+			            "env-key": "LB_JWT_MODEL",
 			            "app-key": "app.lb_register_jwt",
 			            "description": ["JSON WEB Token"],
 			            "model": {

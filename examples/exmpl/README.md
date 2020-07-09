@@ -1,26 +1,29 @@
 
 
-#.env for docker-compose
-docker
+# .env for docker-compose
+Put in folder with docker-compose.yml
 ```
-# Put in folder with docker-compose.yml
-#
-# POSTGRES database
-#
+POSTGRES_DB=exmpl_db
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=mysecretpassword
-#DB_ANON_ROLE=anonymous
-#DB_SCHEMA=aad_schema
-#DB_USER=postgres
-#DB_PASS=PASSWORDmustBEATLEAST32CHARSLONG
-#
-# POSTGREST rest service
-#
-#PGRST_DB_ANON_ROLE=api_user
-#PGRST_DB_URI=postgres://api_user:password@db:5432/aad_db
-#PGRST_DB_SCHEMA=public
-#PGRST_DB_ANON_ROLE=api_user #In production this role should not be the same as the one used for the connection
-# PGRST_SERVER_PROXY_URI="http://127.0.0.1:3000"
+POSTGRES_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+
+
+    volumes:
+      # anything in initdb directory is created in the database
+      # see "How to extend this image" section at https://hub.docker.com/r/_/postgres/
+      #      - "./exmpl-db/pg-database/db-scripts/compiled-scripts:/docker-entrypoint-initdb.d"
+
+      - "./db/sql:/docker-entrypoint-initdb.d"
+
+      # Uncomment this if you want to persist the data.
+
+      #- "~/.data/exmpl_db/pgdata:/var/lib/postgresql/data"
+
+    networks:
+      - postgrest-backend
+
+    restart: always
 
 ```
 

@@ -46,8 +46,8 @@ class Step(Link):
         if os.getenv('LB_POSTGRES_MODEL_password') == None:
             raise Exception('Please set environment variable LB_POSTGRES_MODEL_password')
 
-        if os.getenv('LB_REGISTER_JWT_MODEL_password') == None:
-            raise Exception('Please set environment variable LB_REGISTER_JWT_MODEL_password')
+        if os.getenv('LB_JWT_MODEL_password') == None:
+            raise Exception('Please set environment variable LB_JWT_MODEL_password')
 
         # find resource-folder
         # add resource-folder path to data

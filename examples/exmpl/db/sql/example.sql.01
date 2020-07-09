@@ -13,7 +13,7 @@ app_form is
 user_form is
 (api)              (Validation)   (TABLE)   (TRIGGER)       (FUNCTION)
 token()                                                     sign(_custom, current_setting('app.jwt_secret')::TEXT,  'HS256'::TEXT)
-app(app_form JSON) app_validate   register  register_trig   register_trig_func
+app(app_form JSON) app_validate   example  example_trig   example_trig_func
 user(user_form JSON)
 
 */
@@ -23,7 +23,12 @@ user(user_form JSON)
 * function
 * user
 
+block direct inserts into table
+block direct updates into table
+block direct select from table
 
+select from table via function
+update into table via function
 * issue: ERROR:  database "exmpl_db" already exists
     resolution: DROP DATABASE IF EXISTS exmpl_db;
 
@@ -36,7 +41,6 @@ user(user_form JSON)
     resolution: (replace the TOKEN envirnement variable called by curl)
     resolution: POSTGRES_SCHEMA and PGRST_DB_SCHEMA should be the same
     resolution: remove image, docker rmi exmpl_db
-
 
 * issue: "hint":"No function matches the given name and argument types. You might need to add explicit type casts.","details":null,"code":"42883","message":"function exmpl_schema.app(type => text) does not exist"
     evaluation: looks like the JSONB type doesnt translate via curl. JSON object is passed as TEXT. Postgres doesnt have a method pattern that matches "app(TEXT)"
@@ -63,17 +67,30 @@ user(user_form JSON)
       evaluation: password changes seem to cause this
       try: removing the docker images...docker rmi exmpl_db
 
-extra code
-      \set postgres_password `echo "'$POSTGRES_PASSWORD'"`
-      \set postgres_jwt_secret `echo "'$POSTGRES_JWT_SECRET'"`
-      \set lb_guest_password `echo "'$LB_GUEST_PASSWORD'"`
-
-      select
-        :postgres_password as postgres_password,
-        :postgres_jwt_secret as postgres_jwt_secret,
-        :lb_guest_password as lb_guest_password;
-        --:pgrst_db_uri as pgrst_db_uri;
 */
+
+
+
+\set postgres_password `echo "'$POSTGRES_PASSWORD'"`
+--\set postgres_password `echo "'$POSTGRES_PASSWORD'"`
+--\set postgres_jwt_secret `echo "'$POSTGRES_JWT_SECRET'"`
+\set postgres_jwt_secret `echo "'$POSTGRES_JWT_SECRET'"`
+
+\set lb_guest_password `echo "'$LB_GUEST_PASSWORD'"`
+--LB_GUEST_PASSWORD
+--POSTGRES_DB
+
+--\set pgrst_db_uri `echo "'$PGRST_DB_URI'"`
+
+--select :postgres_password;
+--select :postgres_jwt_secret;
+--select :lb_guest_password;
+
+select
+  :postgres_password as postgres_password,
+  :postgres_jwt_secret as postgres_jwt_secret,
+  :lb_guest_password as lb_guest_password;
+  --:pgrst_db_uri as pgrst_db_uri;
 --------------
 -- DATABASE
 --------------
@@ -97,19 +114,14 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -----------------
 -- variables
 -----------------
--- ALTER DATABASE exmpl_db SET "app.lb_register_jwt" TO '{"username": "jwt@register.com", "email": "jwt@register.com", "password": "PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG", "role": "jwt"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_jwt" TO '{"username": "jwt@register.com", "email": "jwt@register.com", "password": "PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG", "role": "jwt"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_anonymous" TO '{"username": "anonymous@register.com", "email": "anonymous@register.com", "password": "g1G!gggg", "role": "anonymous"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_editor" TO '{"username": "editor@register.com", "email": "editor@register.com", "password": "g1G!gggg", "role": "editor"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_registrant" TO '{"username": "registrant@register.com", "email": "registrant@register.com", "password": "g1G!gggg", "role": "registrant"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_registrar" TO '{"username": "registrar@register.com", "email": "registrar@register.com", "password": "g1G!gggg", "role": "registrar"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_testuser" TO '{"type": "app", "app-name": "my-app", "version": "1.0.0", "username": "testuser@register.com", "email": "testuser@register.com", "password": "g1G!gggg", "role": "registrar"}';
 
 -------------
 -- JWT
 --------------
 -- bad practice to put passwords in scripts
-ALTER DATABASE exmpl_db SET "app.jwt_secret" TO 'PASSWORDmustBEATLEAST32CHARSLONG';
+--ALTER DATABASE exmpl_db SET 'app.jwt_secret' TO :postgres_jwt_secret;
+ALTER DATABASE exmpl_db SET "app.jwt_secret" TO "PASSWORDmustBEATLEAST32CHARSLONG";
+
 -- doenst work ALTER DATABASE exmpl_db SET "custom.authenticator_secret" TO 'mysecretpassword';
 --------------
 -- GUEST
@@ -122,6 +134,9 @@ ALTER DATABASE exmpl_db SET "app.lb_app_data_example" TO '{"type":"app", "group"
 ALTER DATABASE exmpl_db SET "app.lb_api_guest" To '{"role":"api_guest"}';
 -- ALTER DATABASE exmpl_db SET "app.lb_application_form" TO '{"type": "app", "name": "my_app@1.0.0", "group":"example", "owner": "me@someplace.com", "password": "a1A!aaaa"}';
 -- ALTER DATABASE exmpl_db SET "app.lb_user_form" TO        '{"type": "user", "app": "my_app@1.0.0", "name": "me@someplace.com", "password": "a1A!aaaa", "roles": [""]}';
+
+
+
 
 -- Add Application api_guest, insert application-form
 -- Insert Application User,         <app-prefix>_guest
@@ -139,22 +154,22 @@ ALTER DATABASE exmpl_db SET "app.lb_api_guest" To '{"role":"api_guest"}';
 -- Roles without this attribute are useful for managing database privileges, but are not users in the usual sense of the word.
 -- If not specified, NOLOGIN is the default, except when CREATE ROLE is invoked through its alternative spelling CREATE USER.
 --
-create role authenticator noinherit login password 'mysecretclientpassword';
+create role authenticator noinherit login password :lb_guest_password;
 create role api_guest nologin; -- permissions to execute app() and insert type=app into register
 -- each app gets its own _guest role  i.e., example_guest which is <group>_guest {"type":"user", "":""}
 -- each app gets its own _user role   i.e., example_user which is <group>_user
 create role example_user nologin; -- permissions to execute exmpl_schema.user() and insert type=user into register
-
+---------------
+-- SCHEMA: EXMPL_SCHEMA
+---------------
+SET search_path TO exmpl_schema, public;
 ----------------
 -- TYPE: JWT_TOKEN
 ----------------
 CREATE TYPE exmpl_schema.jwt_token AS (
   token text
 );
----------------
--- SCHEMA: EXMPL_SCHEMA
----------------
-SET search_path TO exmpl_schema, public;
+
 --------------
 -- TABLE: REGISTER
 --------------
@@ -230,8 +245,13 @@ CREATE TRIGGER exmpl_ins_upd_trigger
  BEFORE INSERT ON exmpl_schema.register
  FOR EACH ROW
  EXECUTE PROCEDURE exmpl_upsert_trigger_func();
-
-
+/*
+ CREATE OR REPLACE FUNCTION
+ exmpl_schema.showme(key TEXT) RETURNS TEXT AS $$
+   SELECT current_setting(key)
+  AS showme;
+ $$ LANGUAGE sql;
+ */
 -----------------
 -- FUNCTION: TOKEN
 -----------------
@@ -240,6 +260,18 @@ CREATE TRIGGER exmpl_ins_upd_trigger
 -- Returns: jwt-token
 -- token doenst expire
 
+CREATE OR REPLACE FUNCTION
+exmpl_schema.token() RETURNS TEXT AS $$
+  SELECT public.sign(
+    row_to_json(r), current_setting('app.jwt_secret')
+  ) AS token
+  FROM (
+    SELECT
+      'api_guest'::text as role,
+      'app' as type
+  ) r;
+$$ LANGUAGE sql;
+/*
 CREATE FUNCTION exmpl_schema.token() RETURNS jwt_token AS $$
   SELECT public.sign(
     row_to_json(r), current_setting('app.jwt_secret')
@@ -250,6 +282,7 @@ CREATE FUNCTION exmpl_schema.token() RETURNS jwt_token AS $$
       'app' as type
   ) r;
 $$ LANGUAGE sql;
+*/
 -----------------
 -- TOKEN
 -----------------
@@ -277,7 +310,7 @@ $$ LANGUAGE sql;
 -- Returns: jwt_token
 -- token doenst expire
 
-CREATE FUNCTION exmpl_schema.bad_token() RETURNS jwt_token AS $$
+CREATE FUNCTION exmpl_schema.bad_token() RETURNS TEXT AS $$
   SELECT public.sign(
     row_to_json(r), current_setting('app.jwt_secret')
   ) AS token
@@ -295,6 +328,10 @@ $$ LANGUAGE sql;
 -- for internal use only
 -- Permissions: EXECUTE
 -- Returns: BOOLEAN
+
+--select payload ->> 'role' as role  from verify('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYXBpX2d1ZXN0IiwidHlwZSI6ImFwcCJ9.TLhMUGD8CfOjXt4Ugy988QW544vtVOGMShqf91m8qWU', current_setting('app.jwt_secret'));
+--select payload ->> 'role' as role, payload ->> 'type' as type from verify('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYXBpX2d1ZXN0IiwidHlwZSI6ImFwcCJ9.TLhMUGD8CfOjXt4Ugy988QW544vtVOGMShqf91m8qWU', current_setting('app.jwt_secret'));
+
 CREATE OR REPLACE FUNCTION
 exmpl_schema.is_valid_token(_token TEXT, expected_role TEXT) RETURNS Boolean
 AS $$
@@ -435,14 +472,14 @@ $$ LANGUAGE plpgsql;
 -- for internal use only
 -- Permissions: EXECUTE
 -- Returns: JSONB
-/*
+
 CREATE OR REPLACE FUNCTION
 exmpl_schema.round_trip() RETURNS JSONB
 AS $$
 BEGIN
   RETURN '{"status": "200", "msg":"round trip"}';
 END;  $$ LANGUAGE plpgsql;
-*/
+
 ----------------
 -- GRANT: API_GUEST
 ----------------
@@ -459,9 +496,9 @@ grant TRIGGER on exmpl_schema.register to api_guest;
 grant EXECUTE on FUNCTION exmpl_schema.exmpl_upsert_trigger_func to api_guest;
 grant EXECUTE on FUNCTION exmpl_schema.app(JSON) to api_guest;
 grant EXECUTE on FUNCTION exmpl_schema.app_validate(JSONB) to api_guest;
-grant EXECUTE on FUNCTION exmpl_schema.is_valid_token(TEXT,TEXT) to api_guest;
-
-
+grant EXECUTE on FUNCTION exmpl_schema.is_valid_token(TEXT, TEXT) to api_guest;
+grant EXECUTE on FUNCTION exmpl_schema.round_trip() to api_guest;
+-- grant EXECUTE on FUNCTION exmpl_schema.showme(TEXT) to api_guest;
 -- grant EXECUTE on FUNCTION exmpl_schema.round_trip() to api_guest;
 
 -- It’s a good practice to create a dedicated role for connecting to the database, instead of using the highly privileged postgres role.
@@ -474,6 +511,8 @@ grant api_guest to authenticator;
 -- grant usage on schema exmpl_schema to authenticator;
 
 -- Switching occures when the user is authenticated and the jWT token contains an existing role
+
+
 -----------------
 -- Show permissions
 -----------------
@@ -489,6 +528,19 @@ where specific_schema = 'exmpl_schema';
 ----------------
 select exmpl_schema.token();
 select exmpl_schema.bad_token();
+
+-----------------
+-- settings
+-----------------
+select
+  current_setting('app.jwt_secret') as jwt_secret,
+  current_setting('app.lb_api_guest') as lb_api_guest;
+
+SELECT current_user as current_user;
+
+-- select current_setting('app.notreallythere') as notreallythere;
+
+--select exmpl_schema.showme('app.jwt_secret');
 ----------------
 -- CURL
 ----------------
@@ -519,7 +571,7 @@ curl http://localhost:3100/rpc/bad_token -X GET \
      -H "Content-Type: application/json"
 
 # put token in environment
-export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYXBpX2d1ZXN0IiwidHlwZSI6ImFwcCJ9.jGWeoYzXBL46S0kQ6u7AlCpph4bADL3RWPGRPoaeSmw"
+export TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYXBpX2d1ZXN0IiwidHlwZSI6ImFwcCJ9.TLhMUGD8CfOjXt4Ugy988QW544vtVOGMShqf91m8qWU"
 export BADTOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYmFkX3JvbGUiLCJ0eXBlIjoiYmFkX3R5cGUifQ.Hhs_kC0xypud3AhjGIlLO35xEVAtl4_QwP02gR25lPE"
 
 # fail with bad token
