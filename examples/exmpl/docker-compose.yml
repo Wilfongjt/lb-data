@@ -52,9 +52,10 @@ services:
       - POSTGRES_SCHEMA=exmpl_schema
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=mysecretdatabasepassword
-      - POSTGRES_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+      - POSTGRES_JWT_SECRET=${POSTGRES_JWT_SECRET}
       - LB_GUEST_PASSWORD=mysecretclientpassword
-      - LB_EXAMPLE=example
+      #- POSTGRES_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+      #- LB_EXAMPLE=example
       #- PGRST_DB_URI=postgres://authenticator:${LB_GUEST_PASSWORD}@db:5432/${POSTGRES_DB}
       #- PGRST_DB_SCHEMA=${POSTGRES_SCHEMA}
       #- PGRST_DB_ANON_ROLE=api_guest

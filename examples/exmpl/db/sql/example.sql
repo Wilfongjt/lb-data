@@ -75,6 +75,12 @@ extra code
         --:pgrst_db_uri as pgrst_db_uri;
 */
 --------------
+-- Environment
+--------------
+\set postgres_jwt_secret `echo "'$POSTGRES_JWT_SECRET'"`
+
+
+--------------
 -- DATABASE
 --------------
 -- Permissions:
@@ -109,7 +115,9 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- JWT
 --------------
 -- bad practice to put passwords in scripts
-ALTER DATABASE exmpl_db SET "app.jwt_secret" TO 'PASSWORDmustBEATLEAST32CHARSLONG';
+ALTER DATABASE exmpl_db SET "app.jwt_secret" TO :postgres_jwt_secret; 
+
+--ALTER DATABASE exmpl_db SET "app.jwt_secret" TO 'PASSWORDmustBEATLEAST32CHARSLONG';
 -- doenst work ALTER DATABASE exmpl_db SET "custom.authenticator_secret" TO 'mysecretpassword';
 --------------
 -- GUEST
