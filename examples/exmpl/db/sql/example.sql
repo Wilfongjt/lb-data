@@ -63,6 +63,14 @@ user(user_form JSON)
       evaluation: password changes seem to cause this
       try: removing the docker images...docker rmi exmpl_db
 
+* issue:
+      schema \"exmpl_schema\" does not exist
+      try: docker rmi exmpl_db ... didnt work
+      try: reboot... didnt work
+      try: check docker-compose.yml, change POSTGRES_SCHEMA to match
+      try: dropping postgres images
+      try: setting the tolken value ... OK
+
 extra code
       \set postgres_password `echo "'$POSTGRES_PASSWORD'"`
       \set postgres_jwt_secret `echo "'$POSTGRES_JWT_SECRET'"`
@@ -80,9 +88,9 @@ extra code
 \set postgres_jwt_secret `echo "'$POSTGRES_JWT_SECRET'"`;
 \set lb_guest_passord `echo "'$LB_GUEST_PASSWORD'"`;
 \set postgres_db `echo "$POSTGRES_DB"`;
-\set postgres_schema `echo "$POSTGRES_SCHEMA"`;
+--\set postgres_schema `echo "$POSTGRES_SCHEMA"`;
 
-select :'postgres_schema';
+--select :'postgres_schema';
 --------------
 -- DATABASE
 --------------
@@ -90,7 +98,6 @@ select :'postgres_schema';
 
 DROP DATABASE IF EXISTS :postgres_db;
 CREATE DATABASE :postgres_db;
--- CREATE DATABASE exmpl_db;
 
 ---------------
 -- Security, dont let users create anything in public
@@ -98,12 +105,8 @@ CREATE DATABASE :postgres_db;
 -- REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 
 \c exmpl_db;
--- \c :postgres_db;
--- EXEC SQL CONNECT TO exmpl_db ;
--- EXEC SQL CONNECT TO exmpl_db ;
 
---CREATE SCHEMA if not exists exmpl_schema;
-CREATE SCHEMA if not exists :postgres_schema;
+CREATE SCHEMA if not exists api_schema;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;;
 CREATE EXTENSION IF NOT EXISTS pgtap;;
@@ -111,15 +114,8 @@ CREATE EXTENSION IF NOT EXISTS pgjwt;;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -----------------
--- variables
+-- HOST variables
 -----------------
--- ALTER DATABASE exmpl_db SET "app.lb_register_jwt" TO '{"username": "jwt@register.com", "email": "jwt@register.com", "password": "PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG", "role": "jwt"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_jwt" TO '{"username": "jwt@register.com", "email": "jwt@register.com", "password": "PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG", "role": "jwt"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_anonymous" TO '{"username": "anonymous@register.com", "email": "anonymous@register.com", "password": "g1G!gggg", "role": "anonymous"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_editor" TO '{"username": "editor@register.com", "email": "editor@register.com", "password": "g1G!gggg", "role": "editor"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_registrant" TO '{"username": "registrant@register.com", "email": "registrant@register.com", "password": "g1G!gggg", "role": "registrant"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_registrar" TO '{"username": "registrar@register.com", "email": "registrar@register.com", "password": "g1G!gggg", "role": "registrar"}';
--- ALTER DATABASE exmpl_db SET "app.lb_register_testuser" TO '{"type": "app", "app-name": "my-app", "version": "1.0.0", "username": "testuser@register.com", "email": "testuser@register.com", "password": "g1G!gggg", "role": "registrar"}';
 
 -------------
 -- JWT
@@ -127,7 +123,6 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- bad practice to put passwords in scripts
 ALTER DATABASE exmpl_db SET "app.jwt_secret" TO :postgres_jwt_secret;
 
---ALTER DATABASE exmpl_db SET "app.jwt_secret" TO 'PASSWORDmustBEATLEAST32CHARSLONG';
 -- doenst work ALTER DATABASE exmpl_db SET "custom.authenticator_secret" TO 'mysecretpassword';
 --------------
 -- GUEST
@@ -166,13 +161,10 @@ CREATE ROLE api_guest nologin; -- permissions to execute app() and insert type=a
 --CREATE ROLE example_user nologin; -- permissions to execute user() and insert type=user into register
 
 ---------------
--- SCHEMA: EXMPL_SCHEMA
+-- SCHEMA: api_schema
 ---------------
 
-
-SET search_path TO exmpl_schema, public;
--- no SET search_path TO :'postgres_schema', public;
--- no SET search_path TO ':postgres_schema', public;
+SET search_path TO api_schema, public;
 
 ----------------
 -- TYPE: JWT_TOKEN
@@ -464,7 +456,7 @@ $$ LANGUAGE plpgsql;
 -- When a request comes in, PostgREST will switch into this role in the database to run queries.
 --
 
-grant usage on schema exmpl_schema to api_guest;
+grant usage on schema api_schema to api_guest;
 
 grant select on register to api_guest;
 grant insert on register to api_guest;
@@ -485,7 +477,7 @@ grant EXECUTE on FUNCTION is_valid_token(TEXT,TEXT) to api_guest;
 ------------------
 --create role authenticator noinherit login password 'mysecretpassword';
 grant api_guest to authenticator;
--- grant usage on schema exmpl_schema to authenticator;
+-- grant usage on schema api_schema to authenticator;
 
 -- Switching occures when the user is authenticated and the jWT token contains an existing role
 -----------------
@@ -495,10 +487,10 @@ grant api_guest to authenticator;
 /*
 SELECT grantee, privilege_type
 FROM information_schema.role_table_grants
-WHERE table_schema='exmpl_schema';
+WHERE table_schema='api_schema';
 
 select * from information_schema.routine_privileges
-where specific_schema = 'exmpl_schema';
+where specific_schema = 'api_schema';
 */
 ----------------
 -- TOKEN VALUES

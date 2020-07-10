@@ -49,7 +49,7 @@ services:
       - "5433:5432"
     environment: # ${} are defined in .env found in docker-config.yml folder
       - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_SCHEMA=exmpl_schema
+      - POSTGRES_SCHEMA=api_schema
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=mysecretdatabasepassword
       - POSTGRES_JWT_SECRET=${POSTGRES_JWT_SECRET}
@@ -95,7 +95,7 @@ services:
       # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
       # put
       - PGRST_DB_URI=postgres://authenticator:mysecretclientpassword@db:5432/exmpl_db
-      - PGRST_DB_SCHEMA=exmpl_schema
+      - PGRST_DB_SCHEMA=api_schema
       - PGRST_DB_ANON_ROLE=api_guest
       - PGRST_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
       #- PGRST_DB_URI=postgres://authenticator:${LB_GUEST_PASSWORD}@db:5432/${POSTGRES_DB}
