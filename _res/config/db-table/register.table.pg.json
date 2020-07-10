@@ -88,7 +88,8 @@
                     "type": "TEXT",
                     "json": "RI",
                     "search": "uuid",
-                    "calculated": "uuid_generate_v4()"
+                    "calculated": "uuid_generate_v4()",
+                    "regex": "'^[a-z][a-z_]+@[1-9]+\\.[0-9]+\\.[0-9]+'"
                 },
                 {
                     "name": "type",

@@ -1,18 +1,5 @@
-\c postgres
-
-DROP DATABASE IF EXISTS [[LB_PROJECT_prefix]]_db;
-
-CREATE DATABASE [[LB_PROJECT_prefix]]_db;
-
--- SET DB
 
 \c [[LB_PROJECT_prefix]]_db
-
-create schema if not exists [[LB_PROJECT_prefix]]_schema;
-[[db-extensions.*:*.CREATE EXTENSION IF NOT EXISTS {{name}};.; ]]
--- db-extensions
-
-SET search_path TO [[LB_PROJECT_prefix]]_schema, public; -- put everything in [[LB_PROJECT_prefix]]_schema;
 
 -- the following should be set by the admin manually, it is set here for convenience
 -- models
@@ -33,17 +20,3 @@ ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_web_anonymous_password" TO '
 ALTER DATABASE [[LB_PROJECT_prefix]]_db SET "app.lb_admin_registrar_password" TO 'LB_ADMIN_REGISTRAR_PASSWORD]]';
 */
 
-/*
-CREATE OR REPLACE FUNCTION log_last_name_changes()
-  RETURNS trigger AS
-$BODY$
-BEGIN
-   IF NEW.last_name <> OLD.last_name THEN
-       INSERT INTO employee_audits(employee_id,last_name,changed_on)
-       VALUES(OLD.id,OLD.last_name,now());
-   END IF;
-
-   RETURN NEW;
-END;
-$BODY$
-*/

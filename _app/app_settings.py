@@ -25,7 +25,7 @@ class AppSettings(dict):
                 if '{' in os.environ[key] or '[' in os.environ[key]:
                     #print('dict')
                     self[key] = json.loads(os.environ[key])
-                    # break up
+                    # break up json environment variables
                     for k in self[key]:
                         temp_env['{}_{}'.format(key, k)]= self[key][k]
                 else:

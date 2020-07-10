@@ -8,7 +8,7 @@ def test_db():
     "models": [
         {
             "type": "role",
-            "env-key": "LB_REGISTER_JWT_MODEL",
+            "env-key": "LB_JWT_MODEL",
             "app-key": "app.lb_register_jwt",
             "description": ["JSON WEB Token"],
             "model": {

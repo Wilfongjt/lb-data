@@ -24,7 +24,7 @@ LB_PROJECT={"name":"adopt-a-drain", "prefix":"aad", "owner":"Wilfongjt", "branch
 LB_PROJECT_prefix=reg
 
 # Model Users
-LB_REGISTER_JWT_MODEL={"username":"jwt@register.com","email":"jwt@register.com","password":"PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG","role":"jwt"}
+LB_JWT_MODEL={"username":"jwt@register.com","email":"jwt@register.com","password":"PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG","role":"jwt"}
 LB_REGISTER_GUEST_MODEL={"username":"anonymous@register.com","email":"anonymous@register.com","password":"g1G!gggg","role":"anonymous"}
 LB_REGISTER_REGISTRANT_MODEL={"username":"registrant@register.com","email":"registrant@register.com","password":"g1G!gggg","role":"registrant"}
 LB_REGISTER_EDITOR_MODEL={"username":"editor@register.com","email":"editor@register.com","password":"g1G!gggg","role":"editor"}
@@ -37,7 +37,7 @@ LB_WEB_GUEST={"name":"anonymous@web.com","password":"g1G!gggg","role":"anonymous
 
 
 ######### PASSWORDS
-LB_REGISTER_JWT_MODEL_password=PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG
+LB_JWT_MODEL_password=PASSWORD.must.BE.AT.LEAST.32.CHARS.LONG
 
 LB_WEB_PASSWORD=w1W!wwww
 LB_WEB_GUEST_PASSWORD=g1G!gggg

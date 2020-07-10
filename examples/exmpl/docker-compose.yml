@@ -48,19 +48,11 @@ services:
     ports:
       - "5433:5432"
     environment: # ${} are defined in .env found in docker-config.yml folder
-      - POSTGRES_DB=exmpl_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=mysecretpassword
-      #- POSTGRES_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
-      #- POSTGRES_JWT-SECRET=PASSWORDmustBEATLEAST32CHARSLONG
-      #- JWT-SECRET=PASSWORDmustBEATLEAST32CHARSLONG
-      #- JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
-
-      #- DB_ANON_ROLE={DB_ANON_ROLE}
-      #- DB_SCHEMA={DB_SCHEMA}
-      #- DB_NAME=postgres
-      #- DB_USER={DB_USER}
-      #- DB_PASS={DB_PASS}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_JWT_SECRET=${POSTGRES_JWT_SECRET}
+      - LB_GUEST_PASSWORD=${LB_GUEST_PASSWORD}
 
     volumes:
       # anything in initdb directory is created in the database
@@ -94,20 +86,17 @@ services:
       # The standard connection URI format, documented at
       # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
       # put
-      - PGRST_DB_URI=postgres://authenticator:mysecretpassword@db:5432/exmpl_db
-      - PGRST_DB_SCHEMA=exmpl_schema
-      - PGRST_DB_ANON_ROLE=api_guest
-      - PGRST_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
-      #- PGRST_JWT-SECRET=PASSWORDmustBEATLEAST32CHARSLONG
-      #- JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
-      #- JWT-SECRET=PASSWORDmustBEATLEAST32CHARSLONG
-
-      #PGRST_DB_URI: postgres://postgres:     {DB_PASS}@db:5432/exmpl_db
-      #PGRST_DB_SCHEMA: {DB_SCHEMA}
-      #PGRST_DB_ANON_ROLE: {DB_ANON_ROLE}
-      #PGRST_DB_URI: postgres://postgres:   {LB_POSTGRES_MODEL_password}@db:5432/exmpl_db
-      #PGRST_DB_SCHEMA: exmpl_schema
-      #PGRST_DB_ANON_ROLE:    {LB_DB_MODEL_role}
+      - PGRST_DB_URI=postgres://authenticator:${LB_GUEST_PASSWORD}@db:5432/${POSTGRES_DB}
+      - PGRST_DB_SCHEMA=${PGRST_DB_SCHEMA}
+      - PGRST_DB_ANON_ROLE=${PGRST_DB_ANON_ROLE}
+      - PGRST_JWT_SECRET=${POSTGRES_JWT_SECRET}
+      #- PGRST_DB_ANON_ROLE=api_guest
+      #- PGRST_DB_URI=postgres://authenticator:mysecretclientpassword@db:5432/exmpl_db
+      #- PGRST_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
+      #- PGRST_DB_URI=postgres://authenticator:${LB_GUEST_PASSWORD}@db:5432/${POSTGRES_DB}
+      #- PGRST_DB_SCHEMA=${POSTGRES_SCHEMA}
+      #- PGRST_DB_ANON_ROLE=api_guest
+      #- PGRST_DB_SCHEMA=api_schema
 
     depends_on:
       - db
@@ -123,4 +112,3 @@ services:
 networks:
   postgrest-backend:
     driver: bridge
-
