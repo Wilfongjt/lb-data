@@ -87,7 +87,7 @@ extra code
 --------------
 \set postgres_jwt_secret `echo "'$POSTGRES_JWT_SECRET'"`;
 \set lb_guest_passord `echo "'$LB_GUEST_PASSWORD'"`;
-\set postgres_db `echo "$POSTGRES_DB"`;
+--\set postgres_db `echo "$POSTGRES_DB"`;
 --\set postgres_schema `echo "$POSTGRES_SCHEMA"`;
 
 --select :'postgres_schema';
@@ -96,8 +96,8 @@ extra code
 --------------
 -- Permissions:
 
-DROP DATABASE IF EXISTS :postgres_db;
-CREATE DATABASE :postgres_db;
+DROP DATABASE IF EXISTS exmpl_db;
+CREATE DATABASE exmpl_db;
 
 ---------------
 -- Security, dont let users create anything in public
