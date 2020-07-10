@@ -24,8 +24,8 @@ user(user_form JSON)
 * user
 
 
-* issue: ERROR:  database "exmpl_db" already exists
-    resolution: DROP DATABASE IF EXISTS exmpl_db;
+* issue: ERROR:  database "application_db" already exists
+    resolution: DROP DATABASE IF EXISTS application_db;
 
 * issue: "Server lacks JWT secret"
     resolution: (add PGRST_JWT_SECRET to Postrest part of docker-compose)
@@ -35,7 +35,7 @@ user(user_form JSON)
     resolution: (check that sign() is using the correct JWT_SECRET value)
     resolution: (replace the TOKEN envirnement variable called by curl)
     resolution: POSTGRES_SCHEMA and PGRST_DB_SCHEMA should be the same
-    resolution: remove image, docker rmi exmpl_db
+    resolution: remove image, docker rmi application_db
 
 
 * issue: "hint":"No function matches the given name and argument types. You might need to add explicit type casts.","details":null,"code":"42883","message":"function app(type => text) does not exist"
@@ -61,11 +61,11 @@ user(user_form JSON)
 * issue:
       description: FATAL:  password authentication failed for user "authenticator"
       evaluation: password changes seem to cause this
-      try: removing the docker images...docker rmi exmpl_db
+      try: removing the docker images...docker rmi application_db
 
 * issue:
       schema \"exmpl_schema\" does not exist
-      try: docker rmi exmpl_db ... didnt work
+      try: docker rmi application_db ... didnt work
       try: reboot... didnt work
       try: check docker-compose.yml, change POSTGRES_SCHEMA to match
       try: dropping postgres images
@@ -96,15 +96,15 @@ extra code
 --------------
 -- Permissions:
 
-DROP DATABASE IF EXISTS exmpl_db;
-CREATE DATABASE exmpl_db;
+DROP DATABASE IF EXISTS application_db;
+CREATE DATABASE application_db;
 
 ---------------
 -- Security, dont let users create anything in public
 ---------------
 -- REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 
-\c exmpl_db;
+\c application_db;
 
 CREATE SCHEMA if not exists api_schema;
 
@@ -121,20 +121,20 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- JWT
 --------------
 -- bad practice to put passwords in scripts
-ALTER DATABASE exmpl_db SET "app.jwt_secret" TO :postgres_jwt_secret;
+ALTER DATABASE application_db SET "app.jwt_secret" TO :postgres_jwt_secret;
 
--- doenst work ALTER DATABASE exmpl_db SET "custom.authenticator_secret" TO 'mysecretpassword';
+-- doenst work ALTER DATABASE application_db SET "custom.authenticator_secret" TO 'mysecretpassword';
 --------------
 -- GUEST
 --------------
 -- add new application
 --
-ALTER DATABASE exmpl_db SET "app.lb_app_tmpl" TO '{"type":"%s",  "group":"%s",  "name":"%s@%s", "role": "%s_guest"}';
-ALTER DATABASE exmpl_db SET "app.lb_app_data_api" TO     '{"type":"app", "group":"api",     "app-name":"api",     "version":"1.0.0"}';
-ALTER DATABASE exmpl_db SET "app.lb_app_data_example" TO '{"type":"app", "group":"example", "app-name":"example", "version":"1.0.0"}';
-ALTER DATABASE exmpl_db SET "app.lb_api_guest" To '{"role":"api_guest"}';
--- ALTER DATABASE exmpl_db SET "app.lb_application_form" TO '{"type": "app", "name": "my_app@1.0.0", "group":"example", "owner": "me@someplace.com", "password": "a1A!aaaa"}';
--- ALTER DATABASE exmpl_db SET "app.lb_user_form" TO        '{"type": "user", "app": "my_app@1.0.0", "name": "me@someplace.com", "password": "a1A!aaaa", "roles": [""]}';
+ALTER DATABASE application_db SET "app.lb_app_tmpl" TO '{"type":"%s",  "group":"%s",  "name":"%s@%s", "role": "%s_guest"}';
+ALTER DATABASE application_db SET "app.lb_app_data_api" TO     '{"type":"app", "group":"api",     "app-name":"api",     "version":"1.0.0"}';
+ALTER DATABASE application_db SET "app.lb_app_data_example" TO '{"type":"app", "group":"example", "app-name":"example", "version":"1.0.0"}';
+ALTER DATABASE application_db SET "app.lb_api_guest" To '{"role":"api_guest"}';
+-- ALTER DATABASE application_db SET "app.lb_application_form" TO '{"type": "app", "name": "my_app@1.0.0", "group":"example", "owner": "me@someplace.com", "password": "a1A!aaaa"}';
+-- ALTER DATABASE application_db SET "app.lb_user_form" TO        '{"type": "user", "app": "my_app@1.0.0", "name": "me@someplace.com", "password": "a1A!aaaa", "roles": [""]}';
 
 -- Add Application api_guest, insert application-form
 -- Insert Application User,         <app-prefix>_guest

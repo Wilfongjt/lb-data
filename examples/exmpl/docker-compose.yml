@@ -86,15 +86,18 @@ services:
       # The standard connection URI format, documented at
       # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
       # put
-      - PGRST_DB_URI=postgres://authenticator:mysecretclientpassword@db:5432/exmpl_db
-      - PGRST_DB_SCHEMA=api_schema
-      - PGRST_DB_ANON_ROLE=api_guest
+      - PGRST_DB_URI=postgres://authenticator:${LB_GUEST_PASSWORD}@db:5432/${POSTGRES_DB}
+      - PGRST_DB_SCHEMA=${PGRST_DB_SCHEMA}
+      - PGRST_DB_ANON_ROLE=${PGRST_DB_ANON_ROLE}
       - PGRST_JWT_SECRET=${POSTGRES_JWT_SECRET}
-
+      #- PGRST_DB_ANON_ROLE=api_guest
+      #- PGRST_DB_URI=postgres://authenticator:mysecretclientpassword@db:5432/exmpl_db
       #- PGRST_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
       #- PGRST_DB_URI=postgres://authenticator:${LB_GUEST_PASSWORD}@db:5432/${POSTGRES_DB}
       #- PGRST_DB_SCHEMA=${POSTGRES_SCHEMA}
       #- PGRST_DB_ANON_ROLE=api_guest
+      #- PGRST_DB_SCHEMA=api_schema
+
     depends_on:
       - db
 
