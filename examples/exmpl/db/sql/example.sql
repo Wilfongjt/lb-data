@@ -38,7 +38,7 @@ user(user_form JSON)
     resolution: remove image, docker rmi exmpl_db
 
 
-* issue: "hint":"No function matches the given name and argument types. You might need to add explicit type casts.","details":null,"code":"42883","message":"function exmpl_schema.app(type => text) does not exist"
+* issue: "hint":"No function matches the given name and argument types. You might need to add explicit type casts.","details":null,"code":"42883","message":"function app(type => text) does not exist"
     evaluation: looks like the JSONB type doesnt translate via curl. JSON object is passed as TEXT. Postgres doesnt have a method pattern that matches "app(TEXT)"
     resolution: didnt work ... rewrite app(JSONB) to app(TEXT), cast the text to JSONB once passed to function.
     evaluation: curl -d '{"mytype": "app","myval": "xxx"}' is interpeted as two text parameters rather than one JSON parameter
@@ -79,23 +79,32 @@ extra code
 --------------
 \set postgres_jwt_secret `echo "'$POSTGRES_JWT_SECRET'"`;
 \set lb_guest_passord `echo "'$LB_GUEST_PASSWORD'"`;
-\set lb_guest_passord `echo "'$LB_GUEST_PASSWORD'"`;
+\set postgres_db `echo "$POSTGRES_DB"`;
+\set postgres_schema `echo "$POSTGRES_SCHEMA"`;
 
+select :'postgres_schema';
 --------------
 -- DATABASE
 --------------
 -- Permissions:
 
-DROP DATABASE IF EXISTS exmpl_db;
-CREATE DATABASE exmpl_db;
+DROP DATABASE IF EXISTS :postgres_db;
+CREATE DATABASE :postgres_db;
+-- CREATE DATABASE exmpl_db;
+
 ---------------
 -- Security, dont let users create anything in public
 ---------------
 -- REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 
 \c exmpl_db;
+-- \c :postgres_db;
+-- EXEC SQL CONNECT TO exmpl_db ;
+-- EXEC SQL CONNECT TO exmpl_db ;
 
-CREATE schema if not exists exmpl_schema;
+--CREATE SCHEMA if not exists exmpl_schema;
+CREATE SCHEMA if not exists :postgres_schema;
+
 CREATE EXTENSION IF NOT EXISTS pgcrypto;;
 CREATE EXTENSION IF NOT EXISTS pgtap;;
 CREATE EXTENSION IF NOT EXISTS pgjwt;;
@@ -154,25 +163,33 @@ CREATE ROLE authenticator noinherit login password :lb_guest_passord ;
 CREATE ROLE api_guest nologin; -- permissions to execute app() and insert type=app into register
 -- each app gets its own _guest role  i.e., example_guest which is <group>_guest {"type":"user", "":""}
 -- each app gets its own _user role   i.e., example_user which is <group>_user
-CREATE ROLE example_user nologin; -- permissions to execute exmpl_schema.user() and insert type=user into register
+--CREATE ROLE example_user nologin; -- permissions to execute user() and insert type=user into register
+
+---------------
+-- SCHEMA: EXMPL_SCHEMA
+---------------
+
+
+SET search_path TO exmpl_schema, public;
+-- no SET search_path TO :'postgres_schema', public;
+-- no SET search_path TO ':postgres_schema', public;
 
 ----------------
 -- TYPE: JWT_TOKEN
 ----------------
-CREATE TYPE exmpl_schema.jwt_token AS (
+CREATE TYPE jwt_token AS (
   token text
 );
----------------
--- SCHEMA: EXMPL_SCHEMA
----------------
-SET search_path TO exmpl_schema, public;
+--CREATE TYPE jwt_token AS (
+--  token text
+--);
 --------------
 -- TABLE: REGISTER
 --------------
 -- Permissions: INSERT, UPDATE, and SELECT
 
 create table if not exists
-    exmpl_schema.register (
+    register (
         exmpl_id TEXT PRIMARY KEY DEFAULT uuid_generate_v4 (),
         exmpl_type varchar(256) not null check (length(exmpl_type) < 256),
         exmpl_form jsonb not null,
@@ -185,7 +202,7 @@ create table if not exists
 ----------------
 -- INDEX
 ----------------
-CREATE UNIQUE INDEX IF NOT EXISTS register_exmpl_id_pkey ON exmpl_schema.register(exmpl_id);
+CREATE UNIQUE INDEX IF NOT EXISTS register_exmpl_id_pkey ON register(exmpl_id);
 
 ----------------
 -- FUNCTION: EXPML_UPSERT_TRIGGER_FUNC
@@ -238,7 +255,7 @@ END; $$ LANGUAGE plpgsql;
 -- Permissions: EXECUTE
 
 CREATE TRIGGER exmpl_ins_upd_trigger
- BEFORE INSERT ON exmpl_schema.register
+ BEFORE INSERT ON register
  FOR EACH ROW
  EXECUTE PROCEDURE exmpl_upsert_trigger_func();
 
@@ -251,7 +268,7 @@ CREATE TRIGGER exmpl_ins_upd_trigger
 -- Returns: jwt-token
 -- token doenst expire
 
-CREATE FUNCTION exmpl_schema.token() RETURNS jwt_token AS $$
+CREATE FUNCTION token() RETURNS jwt_token AS $$
   SELECT public.sign(
     row_to_json(r), current_setting('app.jwt_secret')
   ) AS token
@@ -269,7 +286,7 @@ $$ LANGUAGE sql;
 -- Returns: jwt-token
 -- token expires in 5 minutes
 /*
-CREATE FUNCTION exmpl_schema.token() RETURNS jwt_token AS $$
+CREATE FUNCTION token() RETURNS jwt_token AS $$
   SELECT public.sign(
     row_to_json(r), current_setting('app.jwt_secret')
   ) AS token
@@ -288,7 +305,7 @@ $$ LANGUAGE sql;
 -- Returns: jwt_token
 -- token doenst expire
 
-CREATE FUNCTION exmpl_schema.bad_token() RETURNS jwt_token AS $$
+CREATE FUNCTION bad_token() RETURNS jwt_token AS $$
   SELECT public.sign(
     row_to_json(r), current_setting('app.jwt_secret')
   ) AS token
@@ -307,7 +324,7 @@ $$ LANGUAGE sql;
 -- Permissions: EXECUTE
 -- Returns: BOOLEAN
 CREATE OR REPLACE FUNCTION
-exmpl_schema.is_valid_token(_token TEXT, expected_role TEXT) RETURNS Boolean
+is_valid_token(_token TEXT, expected_role TEXT) RETURNS Boolean
 AS $$
 
   DECLARE good Boolean;
@@ -335,7 +352,7 @@ END;  $$ LANGUAGE plpgsql;
 -- Permissions: EXECUTE
 -- Returns: BOOLEAN
 CREATE OR REPLACE FUNCTION
-exmpl_schema.app_validate(form JSONB) RETURNS JSONB
+app_validate(form JSONB) RETURNS JSONB
 AS $$
 
   BEGIN
@@ -378,7 +395,7 @@ $$ LANGUAGE plpgsql;
 -- Returns: JSONB
 
 CREATE OR REPLACE FUNCTION
-exmpl_schema.app(form JSON) RETURNS JSONB
+app(form JSON) RETURNS JSONB
 AS $$
   Declare rc jsonb;
   Declare _cur_row JSONB;
@@ -403,7 +420,7 @@ AS $$
         return '{"status": "401", "msg":"Unauthorized bad token"}'::JSONB;
     end if;
 
-    _validation := exmpl_schema.app_validate(_form);
+    _validation := app_validate(_form);
     if _validation ->> 'status' != '200' then
         return _validation;
     end if;
@@ -419,7 +436,7 @@ AS $$
     end if;
 
     BEGIN
-            INSERT INTO exmpl_schema.register
+            INSERT INTO register
                 (exmpl_type, exmpl_form, exmpl_password)
             VALUES
                 (_type, _form, _password );
@@ -439,21 +456,7 @@ AS $$
     return rc;
   END;
 $$ LANGUAGE plpgsql;
-------------
--- FUNCTION: ROUND_TRIP
------------------
--- test if role is expected role
--- for internal use only
--- Permissions: EXECUTE
--- Returns: JSONB
-/*
-CREATE OR REPLACE FUNCTION
-exmpl_schema.round_trip() RETURNS JSONB
-AS $$
-BEGIN
-  RETURN '{"status": "200", "msg":"round trip"}';
-END;  $$ LANGUAGE plpgsql;
-*/
+
 ----------------
 -- GRANT: API_GUEST
 ----------------
@@ -463,17 +466,17 @@ END;  $$ LANGUAGE plpgsql;
 
 grant usage on schema exmpl_schema to api_guest;
 
-grant select on exmpl_schema.register to api_guest;
-grant insert on exmpl_schema.register to api_guest;
-grant update on exmpl_schema.register to api_guest;
-grant TRIGGER on exmpl_schema.register to api_guest;
-grant EXECUTE on FUNCTION exmpl_schema.exmpl_upsert_trigger_func to api_guest;
-grant EXECUTE on FUNCTION exmpl_schema.app(JSON) to api_guest;
-grant EXECUTE on FUNCTION exmpl_schema.app_validate(JSONB) to api_guest;
-grant EXECUTE on FUNCTION exmpl_schema.is_valid_token(TEXT,TEXT) to api_guest;
+grant select on register to api_guest;
+grant insert on register to api_guest;
+grant update on register to api_guest;
+grant TRIGGER on register to api_guest;
+grant EXECUTE on FUNCTION exmpl_upsert_trigger_func to api_guest;
+grant EXECUTE on FUNCTION app(JSON) to api_guest;
+grant EXECUTE on FUNCTION app_validate(JSONB) to api_guest;
+grant EXECUTE on FUNCTION is_valid_token(TEXT,TEXT) to api_guest;
 
 
--- grant EXECUTE on FUNCTION exmpl_schema.round_trip() to api_guest;
+-- grant EXECUTE on FUNCTION round_trip() to api_guest;
 
 -- It’s a good practice to create a dedicated role for connecting to the database, instead of using the highly privileged postgres role.
 -- So we’ll do that, name the role authenticator and also grant him the ability to switch to the api_guest role :
@@ -488,18 +491,20 @@ grant api_guest to authenticator;
 -----------------
 -- Show permissions
 -----------------
+
+/*
 SELECT grantee, privilege_type
 FROM information_schema.role_table_grants
 WHERE table_schema='exmpl_schema';
 
 select * from information_schema.routine_privileges
 where specific_schema = 'exmpl_schema';
-
+*/
 ----------------
 -- TOKEN VALUES
 ----------------
-select exmpl_schema.token();
-select exmpl_schema.bad_token();
+select token();
+select bad_token();
 ----------------
 -- CURL
 ----------------

@@ -48,12 +48,13 @@ services:
     ports:
       - "5433:5432"
     environment: # ${} are defined in .env found in docker-config.yml folder
-      - POSTGRES_DB=exmpl_db
+      - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_SCHEMA=exmpl_schema
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=mysecretdatabasepassword
       - POSTGRES_JWT_SECRET=${POSTGRES_JWT_SECRET}
       - LB_GUEST_PASSWORD=mysecretclientpassword
+      #- POSTGRES_DB=exmpl_db
       #- POSTGRES_JWT_SECRET=PASSWORDmustBEATLEAST32CHARSLONG
       #- LB_EXAMPLE=example
       #- PGRST_DB_URI=postgres://authenticator:${LB_GUEST_PASSWORD}@db:5432/${POSTGRES_DB}
