@@ -78,7 +78,7 @@
                     "privilege": "EXECUTE",
                     "type": "FUNCTION",
                     "parameters": "JSONB",
-                    "role": "api_user"
+                    "role": "api_actor"
                 }
             ],
             "form": [
@@ -144,7 +144,7 @@
                     "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.app( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]",
                     "token": "sign('{{pattern}}'::json, {{password}})",
                     "pattern": {
-                        "username": "testuser@register.com",
+                        "username": "testactor@register.com",
                         "role": "anonymous"
                     },
                     "password": "current_setting('app.jwt_secret')",
@@ -152,7 +152,7 @@
                         "type": "app",
                         "app-name": "my-test-app",
                         "version": "1.0.0",
-                        "username": "testuser@register.com",
+                        "username": "testactor@register.com",
                         "email": "test@register.com",
                         "password": "g1G!gggg",
                         "test": "insert"
@@ -166,7 +166,7 @@
                     "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.app( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]",
                     "token": "sign('{{pattern}}'::json, {{password}} )",
                     "pattern": {
-                        "username": "testuser@register.com",
+                        "username": "testactor@register.com",
                         "role": "anonymous"
                     },
                     "password": "current_setting('app.jwt_secret')",
@@ -178,9 +178,9 @@
                 }
             ]
         },
-        "user": {
+        "actor": {
           "overwrite": "0",
-          "name": "user",
+          "name": "actor",
           "table": "register",
           "methods": [
             "upsert",
@@ -206,13 +206,13 @@
               "privilege": "EXECUTE",
               "type": "FUNCTION",
               "parameters": "TEXT, JSONB",
-              "role": "api_user"
+              "role": "api_actor"
             },
             {
               "privilege": "EXECUTE",
               "type": "FUNCTION",
               "parameters": "TEXT, TEXT",
-              "role": "api_user"
+              "role": "api_actor"
             }
           ],
           "form": [
@@ -229,7 +229,7 @@
               "context": "type",
               "type": "TEXT",
               "json": "CRI",
-              "const": "user"
+              "const": "actor"
             },
             {
               "name": "app_id",
@@ -259,30 +259,30 @@
           "test-forms": [
             {
               "type": "insert",
-              "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.user( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]",
+              "template": "SELECT [[api-test-forms..type:insert..is ( reg_schema.actor( {{token}}, '{{form}}'::JSONB )::JSONB, {{expected}}, {{description}} );]]",
               "token": "sign('{{pattern}}'::json, {{password}})",
               "pattern": {
-                "username": "testuser@register.com",
+                "username": "testactor@register.com",
                 "role": "anonymous"
               },
               "password": "current_setting('app.jwt_secret')",
               "form": {
-                "type": "user",
+                "type": "actor",
                 "app_id": "my-test-app@1.0.0",
-                "username": "testuser@register.com",
+                "username": "testactor@register.com",
                 "email": "test@register.com",
                 "password": "g1G!gggg",
                 "test": "insert"
               },
               "expected": "'{\"status\": \"200\", \"msg\": \"ok\"}'::JSONB",
-              "description": "'user - insert test'::TEXT"
+              "description": "'actor - insert test'::TEXT"
             },
             {
               "type": "select",
-              "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.user( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]",
+              "template": "SELECT [[api-test-forms..type:select..matches( reg_schema.actor( {{token}}, '{{form}}'::JSONB )::TEXT, {{expected}}, {{description}} );]]",
               "token": "sign('{{pattern}}'::json, {{password}} )",
               "pattern": {
-                "username": "testuser@register.com",
+                "username": "testactor@register.com",
                 "role": "anonymous"
               },
               "password": "current_setting('app.jwt_secret')",
@@ -290,7 +290,7 @@
                 "id": "my-test-app@1.0.0"
               },
               "expected": "'[a-zA-Z\\.0-9_]+'",
-              "description": "'user - select from {{tbl-name}} by id and check token'::TEXT"
+              "description": "'actor - select from {{tbl-name}} by id and check token'::TEXT"
             }
           ]
         }

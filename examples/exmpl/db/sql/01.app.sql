@@ -223,10 +223,10 @@ BEGIN
       IF (NEW.exmpl_form ->> 'type' = 'app') then
         -- create custom token for a new app
         --: iss (issuer), exp (expiration time), sub (subject)
-        _payload_claims_tmpl := '{"iss":"%s", "sub":"%s", "role":"%s", "name":"%s@%s"}'::TEXT;
+        --_payload_claims_tmpl := '{"iss":"%s", "sub":"%s", "role":"%s", "name":"%s@%s"}'::TEXT;
         -- iss, sub, role, type, name
         -- create custom
-        _payload_claims := format(_payload_claims_tmpl,
+        _payload_claims := format('{"iss":"%s", "sub":"%s", "role":"%s", "name":"%s@%s"}'::TEXT,
                                   'LyttleBit',
                                   'API Admin',
                                   'api_guest',
@@ -412,7 +412,7 @@ AS $$
   Declare _model_user JSONB;
   Declare _form JSONB;
   Declare _jwt_role TEXT;
-  Declare _type TEXT;
+  Declare _jwt_type TEXT;
   Declare _validation JSONB;
   Declare _password TEXT;
 
@@ -420,7 +420,7 @@ AS $$
     -- get request values
 
     _jwt_role := current_setting('request.jwt.claim.role');
-    _type := current_setting('request.jwt.claim.type');
+    _jwt_type := current_setting('request.jwt.claim.type');
 
     _form := form::JSONB;
     -- evaluate the token
@@ -449,14 +449,14 @@ AS $$
             INSERT INTO register
                 (exmpl_type, exmpl_form, exmpl_password)
             VALUES
-                (_type, _form, _password );
+                (_jwt_type, _form, _password );
     EXCEPTION
         WHEN unique_violation THEN
             return '{"status":"400", "msg":"Bad Request, duplicate error"}'::JSONB;
         WHEN check_violation then
             return '{"status":"400", "msg":"Bad Request, validation error"}'::JSONB;
         WHEN others then
-            return format('{"status":"500", "msg":"unknown insertion error", "SQLSTATE":"%s", "form":%s, "type":"%s", "password":"%s"}',SQLSTATE, _form, _type, _password)::JSONB;
+            return format('{"status":"500", "msg":"unknown insertion error", "SQLSTATE":"%s", "form":%s, "type":"%s", "password":"%s"}',SQLSTATE, _form, _jwt_type, _password)::JSONB;
     END;
 
     -- rc := format('{"status": "200", "form": %s , "role":"%s", "type":"%s"}', _form::TEXT, _jwt_role, _type)::JSONB;
