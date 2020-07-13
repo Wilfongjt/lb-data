@@ -3,15 +3,17 @@
 * The system expects to be run over an encrypted connection
 * Woden is the origin
 * LyttleBit is Woden
-* RegisterAPI is the application and user management system API
+* RegisterAPI is the application and actor management system API
 * AdoptionAPI is an application specific API
 * Adopt-a-Drain is an application
-* Adopt-a-Drain uses the RegisterAPI and, AdoptionAPI APIs
+* Adopt-a-Drain uses the RegisterAPI API
+* Adopt-a-Drain uses the AdoptionAPI API
 * Passwords are encrypted before storage
 * Passwords are never passed out of the database system
 * Registered applications have an application specific token called an app-token
-* Users get a temporary JWT token called a user-token
-* User-tokens expire
+* Actors is a user
+* Actors get a temporary JWT token called a actor-token
+* Actor-tokens expire
 * RegisterAPI woden API call does not require a token
 * Wodens do not expire
 * Wodens can be replaced
@@ -26,9 +28,9 @@
    1. Create an Application
    2. Check proper application creation: Curl an Application  
 3. Register an Application User
-   1. Create a user
-   2. Check proper user creation: Curl a user
-4.
+   1. Create a actor
+   2. Check proper actor creation: Curl a actor
+
 
 ## Setup
   1.1. Configure .env (place .env in folder with docker-compose.yml)
@@ -71,30 +73,63 @@
   ```
       export AADTOKEN=<application-token>
   ```
-  8. Register AAD application user (repeat as needed)
+  8. Register AAD application actor (repeat as needed)
   ```
-      curl http://localhost:3100/rpc/user -X POST \
+      curl http://localhost:3100/rpc/actor -X POST \
            -H "Authorization: Bearer $APPTOKEN"   \
            -H "Content-Type: application/json" \
            -H "Prefer: params=single-object"\
-           -d '{"type": "user", "name": "request@1.0.0", "username": "me@someplace.com", "password": "a1A!aaaa"}'
+           -d '{"type": "actor", "name": "request@1.0.0", "username": "me@someplace.com", "password": "a1A!aaaa"}'
 
   ```
-  9. Application Signin Or get user-token:
+  9. Application Signin Or get actor-token:
   ```
-      curl http://localhost:3100/rpc/user -X POST \
+      curl http://localhost:3100/rpc/actor -X POST \
            -H "Authorization: Bearer $APPTOKEN"   \
            -H "Content-Type: application/json" \
            -d '{"username":"", "password":""}'
   ```
+
+# Data Design  
+
 application_db
     api_schema
-        woden
-        register
-            app
-            user
-        adoptions
-            adopt
+        woden ()
+        register columns: (id, type, form, password, active, created, updated)
+            app: atts: (id, type, app-name, version, username, [password], token)
+              insert app (Authorization: woden)(creates:app-token)
+              select app (Authorization: woden)(returns:app-token)
+            actor: atts: (id, type, app_id, username,[password])
+              insert actor (Authorization: app-token)
+              select actor (app-token)(returns: actor-token)
+              update actor (actor-token)
+              delete/deactivate actor (actor-token)
+        adoption columns: (id, type, form, active, created, updated)
+            adoption
+              insert adoption (actor-token)
+              update adoption (actor-token)
+              delete adoption (actor-token)
 roles
     api_guest
-    aad_guest user
+    actor_editor
+tokens
+      woden: claims: (type, roles)
+        type: app
+        _roles: [api_guest]_
+      app-token: claims: (iss, sub, name, roles, type)  
+        _iss: LyttleBit_
+        _sub: _
+        _name: <application-name>_
+        _roles:[app_guest]_
+        _type: actor_
+      _actor-token: claims: (iss, sub, name, roles, type)_
+        _iss:_
+        _sub:_
+        _name: <username>_
+        _roles: []_
+        _type:_
+
+# History
+* actor: upsert for actor
+* roles: change from single role to multiple roles   
+* woden: add iss, sub, name, roles type to woden    

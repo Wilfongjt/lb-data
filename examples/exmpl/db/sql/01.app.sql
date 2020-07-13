@@ -130,11 +130,11 @@ ALTER DATABASE application_db SET "app.jwt_secret" TO :postgres_jwt_secret;
 --------------
 -- add new application
 --
-ALTER DATABASE application_db SET "app.lb_app_tmpl" TO '{"type":"%s",  "group":"%s",  "name":"%s@%s", "role": "%s_guest"}';
-ALTER DATABASE application_db SET "app.app_payload_claims" TO     '{"type":"app", "group":"api",     "app-name":"api",     "version":"1.0.0"}';
+-- ALTER DATABASE application_db SET "app.lb_app_tmpl" TO '{"type":"%s",  "group":"%s",  "name":"%s@%s", "role": "%s_guest"}';
+--ALTER DATABASE application_db SET "app.app_payload_claims" TO     '{"type":"app", "group":"api",     "app-name":"api",     "version":"1.0.0"}';
 
 --ALTER DATABASE application_db SET "app.lb_app_data_api" TO     '{"type":"app", "group":"api",     "app-name":"api",     "version":"1.0.0"}';
-ALTER DATABASE application_db SET "app.lb_app_data_example" TO '{"type":"app", "group":"example", "app-name":"example", "version":"1.0.0"}';
+--ALTER DATABASE application_db SET "app.lb_app_data_example" TO '{"type":"app", "group":"example", "app-name":"example", "version":"1.0.0"}';
 ALTER DATABASE application_db SET "app.lb_api_guest" To '{"role":"api_guest"}';
 -- ALTER DATABASE application_db SET "app.lb_application_form" TO '{"type": "app", "name": "my_app@1.0.0", "group":"example", "owner": "me@someplace.com", "password": "a1A!aaaa"}';
 -- ALTER DATABASE application_db SET "app.lb_user_form" TO        '{"type": "user", "app": "my_app@1.0.0", "name": "me@someplace.com", "password": "a1A!aaaa", "roles": [""]}';
@@ -163,7 +163,7 @@ CREATE ROLE api_guest nologin; -- permissions to execute app() and insert type=a
 -- each app gets its own _guest role  i.e., example_guest which is <group>_guest {"type":"user", "":""}
 -- each app gets its own _user role   i.e., example_user which is <group>_user
 --CREATE ROLE example_user nologin; -- permissions to execute user() and insert type=user into register
-
+--CREATE ROLE aad_guest nologin;
 ---------------
 -- SCHEMA: api_schema
 ---------------
@@ -205,7 +205,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS register_exmpl_id_pkey ON register(exmpl_id);
 ----------------
 -- Permissions: EXECUTE
 -- Parameters: None
-CREATE OR REPLACE FUNCTION exmpl_upsert_trigger_func() RETURNS trigger
+CREATE OR REPLACE FUNCTION register_upsert_trigger_func() RETURNS trigger
 AS $$
 Declare _token TEXT;
 Declare _payload_claims JSON;
@@ -218,7 +218,7 @@ BEGIN
    -- create application token
    -- application specific login
    -- '{"type":"%s",  "group":"%s",  "name":"%s@%s", "role": "%s_guest"}';
-   --
+
     IF (TG_OP = 'INSERT') THEN
       IF (NEW.exmpl_form ->> 'type' = 'app') then
         -- create custom token for a new app
@@ -259,10 +259,10 @@ END; $$ LANGUAGE plpgsql;
 ----------------
 -- Permissions: EXECUTE
 
-CREATE TRIGGER exmpl_ins_upd_trigger
+CREATE TRIGGER register_ins_upd_trigger
  BEFORE INSERT ON register
  FOR EACH ROW
- EXECUTE PROCEDURE exmpl_upsert_trigger_func();
+ EXECUTE PROCEDURE register_upsert_trigger_func();
 
 
 -----------------
@@ -278,7 +278,22 @@ CREATE TRIGGER exmpl_ins_upd_trigger
 -- || access    |
 -- || app(JSON) |
 CREATE FUNCTION woden() RETURNS jwt_token AS $$
-  /* make token to execute app(JSON) */
+  -- make token to execute app(JSON)
+  SELECT public.sign(
+    row_to_json(r), current_setting('app.jwt_secret')
+  ) AS woden
+  FROM (
+    SELECT
+      'LyttleBit'::TEXT as iss,
+      'Origin'::TEXT as sub,
+      'Woden'::TEXT as name,
+      'api_guest'::text as roles,
+      'app' as type
+  ) r;
+$$ LANGUAGE sql;
+/*
+CREATE FUNCTION woden() RETURNS jwt_token AS $$
+
   SELECT public.sign(
     row_to_json(r), current_setting('app.jwt_secret')
   ) AS woden
@@ -288,6 +303,7 @@ CREATE FUNCTION woden() RETURNS jwt_token AS $$
       'app' as type
   ) r;
 $$ LANGUAGE sql;
+*/
 -----------------
 -- WODEN
 -----------------
@@ -321,7 +337,7 @@ CREATE FUNCTION bad_woden() RETURNS jwt_token AS $$
   ) AS woden
   FROM (
     SELECT
-      'bad_role'::text as role,
+      'bad_role'::text as roles,
       'bad_type' as type
   ) r;
 $$ LANGUAGE sql;
@@ -403,10 +419,10 @@ $$ LANGUAGE plpgsql;
 -- inserts an application record into the system
 -- Permissions: EXECUTE
 -- Returns: JSONB
+-- Role: api_guest
 
-CREATE OR REPLACE FUNCTION
-app(form JSON) RETURNS JSONB
-AS $$
+CREATE OR REPLACE FUNCTION app(form JSON)
+RETURNS JSONB AS $$
   Declare rc jsonb;
   --Declare _cur_row JSONB;
   Declare _model_user JSONB;
@@ -439,9 +455,9 @@ AS $$
         return '{"status": "400", "msg": "Update not supported"}'::JSONB;
     end if;
 
-    -- never store password in form
     if _form ? 'password' then
         _password := _form ->> 'password';
+        -- never store password in form
         _form := _form - 'password';
     end if;
 
@@ -485,13 +501,14 @@ grant select on register to api_guest;
 grant insert on register to api_guest;
 grant update on register to api_guest;
 grant TRIGGER on register to api_guest;
-grant EXECUTE on FUNCTION exmpl_upsert_trigger_func to api_guest;
+
+grant EXECUTE on FUNCTION register_upsert_trigger_func to api_guest;
 grant EXECUTE on FUNCTION app(JSON) to api_guest;
 grant EXECUTE on FUNCTION app(TEXT) to api_guest;
 
 grant EXECUTE on FUNCTION app_validate(JSONB) to api_guest;
-grant EXECUTE on FUNCTION is_valid_token(TEXT,TEXT) to api_guest;
 
+grant EXECUTE on FUNCTION is_valid_token(TEXT,TEXT) to api_guest;
 
 -- grant EXECUTE on FUNCTION round_trip() to api_guest;
 
