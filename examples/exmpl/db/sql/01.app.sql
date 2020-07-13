@@ -400,14 +400,12 @@ AS $$
 
     -- proper password
     if not (exists(select regexp_matches(form ->> 'password', '^(?=.{8,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W).*$') )) then
-    -- if format('{%s}',form ->> 'password')::TEXT[] != regexp_matches(form ->> 'password', '^(?=.{8,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W).*$') then
        return '{"status":"400", "msg":"Bad Request, bad password."}'::JSONB;
     end if;
 
     -- proper owner name ... email
     if not( exists( select regexp_matches(form ->> 'owner', '[a-z\-_0-9]+@[a-z]+\.[a-z]+') ) ) then
        return format('{"status":"400", "msg":"Bad Request, bad owner name.", "owner":"%s"}', form ->> 'owner')::JSONB;
-       -- return '{"status":"400", "msg":"Bad Request, bad owner name."}'::JSONB;
     end if;
 
     return '{"status": "200"}'::JSONB;

@@ -95,8 +95,26 @@ AS $$
 
   BEGIN
     -- confirm all required attributes are in form
+    if not(form ? 'type' and form ? 'app_id' and form ? 'username' and form ? 'password') then
+       return '{"status":"400","msg":"Bad Request, missing one or more form attributes"}'::JSONB;
+    end if;
     -- validate attribute values
-
+    if not(form ->> 'type' = 'actor') then
+       return '{"status":"400", "msg":"Bad Request type value."}'::JSONB;
+    end if;
+    -- proper application name
+    if not( exists( select regexp_matches(form ->> 'app_id', '^[a-z][a-z_]+@[1-9]+\.[0-9]+\.[0-9]+') ) ) then
+       return '{"status":"400", "msg":"Bad Request, bad applicaton id."}'::JSONB;
+    end if;
+    -- proper password
+    if not (exists(select regexp_matches(form ->> 'password', '^(?=.{8,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W).*$') )) then
+       return '{"status":"400", "msg":"Bad Request, bad password."}'::JSONB;
+    end if;
+    -- proper username ... email
+    if not( exists( select regexp_matches(form ->> 'username', '[a-z\-_0-9]+@[a-z]+\.[a-z]+') ) ) then
+       return format('{"status":"400", "msg":"Bad Request, bad owner name.", "username":"%s"}', form ->> 'username')::JSONB;
+       -- return '{"status":"400", "msg":"Bad Request, bad owner name."}'::JSONB;
+    end if;
     return '{"status": "200"}'::JSONB;
   END;
 $$ LANGUAGE plpgsql;
