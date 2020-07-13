@@ -111,18 +111,19 @@ application_db
               delete adoption (actor-token)
 roles
     api_guest
+    app_guest
     actor_editor
 tokens
-      woden: claims: (type, roles)
+      woden: claims: (iss, sub, name, role, type)
         type: app
-        _roles: [api_guest]_
-      app-token: claims: (iss, sub, name, roles, type)  
+        role: api_guest
+      app-token: claims: (iss, sub, name, role, type)  
         _iss: LyttleBit_
         _sub: _
         _name: <application-name>_
         _roles:[app_guest]_
         _type: actor_
-      _actor-token: claims: (iss, sub, name, roles, type)_
+      _actor-token: claims: (iss, sub, name, role, type)_
         _iss:_
         _sub:_
         _name: <username>_
@@ -132,4 +133,6 @@ tokens
 # History
 * actor: upsert for actor
 * roles: change from single role to multiple roles   
-* woden: add iss, sub, name, roles type to woden    
+* woden: add iss, sub, name, roles type to woden  
+* add insert test for app
+* add select test for app    

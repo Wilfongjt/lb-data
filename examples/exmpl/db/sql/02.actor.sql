@@ -5,11 +5,12 @@ CREATE SCHEMA if not exists api_schema;
 ----------------
 -- system variables
 ----------------
-ALTER DATABASE application_db SET "app.lb_actor_editor" To '{"role":"actor_editor"}';
+ALTER DATABASE application_db SET "app.lb_actor_editor" To '{"role":"app_guest"}';
 
 ---------------
 -- SCHEMA: api_schema
 ---------------
+CREATE ROLE app_guest nologin;
 CREATE ROLE actor_editor nologin; -- permissions to execute app() and insert type=app into register
 
 SET search_path TO api_schema, public;
@@ -30,21 +31,26 @@ RETURNS JSONB AS $$
   Declare _jwt_type TEXT;
   Declare _validation JSONB;
   Declare _password TEXT;
+
   BEGIN
     -- claims check
-    _jwt_role := current_setting('request.jwt.claim.role');
-    _jwt_type := current_setting('request.jwt.claim.type');
+    _jwt_role := current_setting('request.jwt.claim.role','t');
+    _jwt_type := current_setting('request.jwt.claim.type','t');
+    if _jwt_role is NULL or _jwt_type is NULL then
+      _jwt_role := 'app_guest';
+      _jwt_type := 'actor';
+    end if;
 
     _form := form::JSONB;
     -- evaluate the token
     _model_user := current_setting('app.lb_actor_editor')::jsonb;
 
     if not(_model_user ->> 'role' = _jwt_role) then
-        return '{"status": "401", "msg":"Unauthorized bad token"}'::JSONB;
+        return format('{"status": "401", "msg":"Unauthorized bad token", "jwt_role":"%s"}', _jwt_role)::JSONB;
     end if;
     -- confirm all required attributes are in form
     -- validate attribute values
-    _validation := app_validate(_form);
+    _validation := actor_validate(_form);
     if _validation ->> 'status' != '200' then
         return _validation;
     end if;
@@ -72,10 +78,10 @@ RETURNS JSONB AS $$
           WHEN others then
               return format('{"status":"500", "msg":"unknown insertion error", "SQLSTATE":"%s", "form":%s, "type":"%s", "password":"%s"}',SQLSTATE, _form, _jwt_type, _password)::JSONB;
       END;
-
-
     end if;
-    return '{"status": "200"}'::JSONB;
+
+    rc := '{"msg": "OK", "status": "200"}'::JSONB;
+    return rc;
   END;
 $$ LANGUAGE plpgsql;
 -----------------
@@ -104,8 +110,7 @@ $$ LANGUAGE plpgsql;
 -- Permissions: EXECUTE
 -- Returns: JSONB
 
-CREATE OR REPLACE FUNCTION
-actor(id TEXT) RETURNS JSONB
+CREATE OR REPLACE FUNCTION actor(id TEXT) RETURNS JSONB
 AS $$
   Select exmpl_form from register where exmpl_id=id;
 $$ LANGUAGE sql;
@@ -116,7 +121,7 @@ $$ LANGUAGE sql;
 grant usage on schema api_schema to actor_editor;
 
 grant select on register to actor_editor;
-grant insert on register to actor_editor;
+grant insert on register to app_guest;
 grant update on register to actor_editor;
 grant TRIGGER on register to actor_editor;
 

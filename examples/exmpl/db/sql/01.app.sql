@@ -122,6 +122,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- JWT
 --------------
 -- bad practice to put passwords in scripts
+--ALTER DATABASE application_db SET "app.testdb" TO 'f';
 ALTER DATABASE application_db SET "app.jwt_secret" TO :postgres_jwt_secret;
 -- select current_setting('app.jwt_secret');
 -- doenst work ALTER DATABASE application_db SET "custom.authenticator_secret" TO 'mysecretpassword';
@@ -277,6 +278,7 @@ CREATE TRIGGER register_ins_upd_trigger
 -- iss, sub, role, type, name
 -- || access    |
 -- || app(JSON) |
+
 CREATE FUNCTION woden() RETURNS jwt_token AS $$
   -- make token to execute app(JSON)
   SELECT public.sign(
@@ -284,10 +286,10 @@ CREATE FUNCTION woden() RETURNS jwt_token AS $$
   ) AS woden
   FROM (
     SELECT
-      'LyttleBit'::TEXT as iss,
-      'Origin'::TEXT as sub,
-      'Woden'::TEXT as name,
-      'api_guest'::text as roles,
+      'LyttleBit' as iss,
+      'Origin'::text as sub,
+      'Woden'::text as name,
+      'api_guest'::text as role,
       'app' as type
   ) r;
 $$ LANGUAGE sql;
@@ -349,8 +351,7 @@ $$ LANGUAGE sql;
 -- for internal use only
 -- Permissions: EXECUTE
 -- Returns: BOOLEAN
-CREATE OR REPLACE FUNCTION
-is_valid_token(_token TEXT, expected_role TEXT) RETURNS Boolean
+CREATE OR REPLACE FUNCTION is_valid_token(_token TEXT, expected_role TEXT) RETURNS Boolean
 AS $$
 
   DECLARE good Boolean;
@@ -424,7 +425,6 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION app(form JSON)
 RETURNS JSONB AS $$
   Declare rc jsonb;
-  --Declare _cur_row JSONB;
   Declare _model_user JSONB;
   Declare _form JSONB;
   Declare _jwt_role TEXT;
@@ -434,9 +434,12 @@ RETURNS JSONB AS $$
 
   BEGIN
     -- get request values
-
-    _jwt_role := current_setting('request.jwt.claim.role');
-    _jwt_type := current_setting('request.jwt.claim.type');
+    _jwt_role := current_setting('request.jwt.claim.role','t');
+    _jwt_type := current_setting('request.jwt.claim.type','t');
+    if _jwt_role is NULL or _jwt_type is NULL then
+      _jwt_role := 'api_guest';
+      _jwt_type := 'app';
+    end if;
 
     _form := form::JSONB;
     -- evaluate the token
@@ -477,12 +480,14 @@ RETURNS JSONB AS $$
 
     -- rc := format('{"status": "200", "form": %s , "role":"%s", "type":"%s"}', _form::TEXT, _jwt_role, _type)::JSONB;
 
-    rc := '{"status": "200"}'::JSONB;
+    rc := '{"msg": "OK", "status": "200"}'::JSONB;
 
     return rc;
   END;
 $$ LANGUAGE plpgsql;
-
+--------------------
+-- FUNCTION: APP(TEXT)
+--------------------
 CREATE OR REPLACE FUNCTION
 app(id TEXT) RETURNS JSONB
 AS $$
@@ -503,6 +508,7 @@ grant update on register to api_guest;
 grant TRIGGER on register to api_guest;
 
 grant EXECUTE on FUNCTION register_upsert_trigger_func to api_guest;
+
 grant EXECUTE on FUNCTION app(JSON) to api_guest;
 grant EXECUTE on FUNCTION app(TEXT) to api_guest;
 
